@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <base target="_top">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <title>Dashboard VOC</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --background-color: #f0f2f5;
+            --form-bg-color: #ffffff;
+            --text-color: #333333;
+            --border-color: #dddddd;
+        }
+
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            padding: 20px;
+            margin: 0;
+            box-sizing: border-box;
+        }
+        
+        .dashboard-container {
+            max-width: 1200px;
+            margin: auto;
+            display: grid;
+            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        }
+
+        .dashboard-card {
+            background-color: var(--form-bg-color);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart-title {
+            font-size: 20px;
+            font-weight: 500;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .metric-card {
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .metric-label {
+            font-size: 18px;
+            color: #666;
+        }
+        
+        #loading-message {
+            text-align: center;
+            font-size: 18px;
+            color: #888;
+            margin-top: 50px;
+        }
+
+        .ranking-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .ranking-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 16px;
+        }
+
+        .ranking-item:last-child {
+            border-bottom: none;
+        }
+
+        .ranking-name {
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .ranking-percent {
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+    </style>
+</head>
+
+<body>
+    <h1 style="text-align: center; margin-bottom: 30px;">Dashboard ข้อมูลเสียงของลูกค้า</h1>
+    
+    <div id="loading-message">กำลังโหลดข้อมูล...</div>
+    
+    <div class="dashboard-container" style="display: none;">
+        <div class="dashboard-card metric-card">
+            <div class="metric-label">จำนวน VOC ทั้งหมด</div>
+            <div class="metric-value" id="total-voc">0</div>
+        </div>
+        
+        <div class="dashboard-card metric-card">
+            <div class="metric-label">VOC ใหม่ในวันนี้</div>
+            <div class="metric-value" id="new-voc-today">0</div>
+        </div>
+        
+        <div class="dashboard-card">
+            <div class="chart-title">สัดส่วนประเภทผู้ตอบ</div>
+            <div id="chart-respondent-type"></div>
+        </div>
+
+        <div class="dashboard-card">
+            <div class="chart-title">ประเภทการแจ้ง (Top 4)</div>
+            <ul id="action-type-ranking" class="ranking-list">
+                </ul>
+        </div>
+
+        <div class="dashboard-card">
+            <div class="chart-title">ประเภทของ VOC</div>
+            <div id="chart-type"></div>
+        </div>
+        
+        <div class="dashboard-card">
+            <div class="chart-title">สถานะการดำเนินการ</div>
+            <div id="chart-status"></div>
+        </div>
+    </div>
+    
+    <script>
+        // โหลด Google Charts API
+        google.charts.load('current', {'packages':['corechart', 'table']});
+        google.charts.setOnLoadCallback(fetchData);
+
+        // ฟังก์ชันสำหรับดึงข้อมูลจาก Google Apps Script
+        function fetchData() {
+            google.script.run
+                .withSuccessHandler(drawDashboard)
+                .withFailureHandler(showError)
+                .getDashboardData();
+        }
+
+        // ฟังก์ชันสำหรับวาด Dashboard เมื่อได้ข้อมูลมาแล้ว
+        function drawDashboard(data) {
+            document.getElementById('loading-message').style.display = 'none';
+            document.querySelector('.dashboard-container').style.display = 'grid';
+
+            // แสดงตัวเลข
+            document.getElementById('total-voc').innerText = data.totalVOC;
+            document.getElementById('new-voc-today').innerText = data.newVOCToday;
+
+            // วาดกราฟประเภท VOC
+            if (data.typeData && data.typeData.length > 1) {
+                var typeDataTable = google.visualization.arrayToDataTable(data.typeData);
+                var typeChart = new google.visualization.PieChart(document.getElementById('chart-type'));
+                typeChart.draw(typeDataTable, {
+                    title: 'ประเภทของ VOC',
+                    is3D: true,
+                    legend: { position: 'bottom' },
+                    pieSliceText: 'percentage'
+                });
+            }
+
+            // วาดกราฟสถานะ
+            if (data.statusData && data.statusData.length > 1) {
+                var statusDataTable = google.visualization.arrayToDataTable(data.statusData);
+                var statusChart = new google.visualization.ColumnChart(document.getElementById('chart-status'));
+                statusChart.draw(statusDataTable, {
+                    title: 'สถานะการดำเนินการ',
+                    legend: { position: 'none' },
+                    vAxis: { title: 'จำนวน' }
+                });
+            }
+            
+            // วาดกราฟประเภทผู้ตอบ (เพิ่มใหม่)
+            if (data.respondentTypeData && data.respondentTypeData.length > 1) {
+                var respondentTypeDataTable = google.visualization.arrayToDataTable(data.respondentTypeData);
+                var respondentTypeChart = new google.visualization.PieChart(document.getElementById('chart-respondent-type'));
+                respondentTypeChart.draw(respondentTypeDataTable, {
+                    title: 'สัดส่วนประเภทผู้ตอบ',
+                    is3D: true,
+                    legend: { position: 'bottom' },
+                    pieSliceText: 'percentage'
+                });
+            }
+
+            // แสดงอันดับประเภทการแจ้ง (เพิ่มใหม่)
+            var rankingList = document.getElementById('action-type-ranking');
+            rankingList.innerHTML = '';
+            data.topActionTypes.forEach(function(item) {
+                var listItem = document.createElement('li');
+                listItem.className = 'ranking-item';
+                listItem.innerHTML = '<span class="ranking-name">' + item.name + '</span>' +
+                                     '<span class="ranking-percent">' + item.percentage + '%</span>';
+                rankingList.appendChild(listItem);
+            });
+
+            // ตั้งเวลาให้โหลดข้อมูลใหม่ทุก 30 วินาที
+            setTimeout(fetchData, 30000);
+        }
+
+        function showError(error) {
+            document.getElementById('loading-message').innerText = 'ไม่สามารถโหลดข้อมูลได้: ' + error.message;
+        }
+
+    </script>
+</body>
+
+</html>
