@@ -94,7 +94,7 @@
 </head>
 
 <body>
-    <h1 style="text-align: center; margin-bottom: 26px;">แดชบอร์ดข้อมูลเสียงของลูกค้า</h1>
+    <h1 style="text-align: center; margin-bottom: 30px;">แดชบอร์ดข้อมูลเสียงของลูกค้า</h1>
     
     <div id="loading-message">กำลังโหลดข้อมูล...</div>
     
@@ -112,12 +112,12 @@
         </div>
 
         <div class="dashboard-card">
-            <div class="chart-title">จำนวนประเภทของผู้ตอบ</div>
+            <div class="chart-title">สัดส่วนประเภทของผู้ตอบ</div>
             <div id="chart-respondent-type"></div>
         </div>
 
         <div class="dashboard-card">
-            <div class="chart-title">จำนวนประเภทการดำเนินการ (Top 4)</div>
+            <div class="chart-title">สัดส่วนประเภทการดำเนินการ (Top 4)</div>
             <div id="chart-action-type"></div>
         </div>
         
@@ -132,11 +132,9 @@
     <script>
         var dashboardData;
 
-        // โหลด Google Charts API
         google.charts.load('current', {'packages':['corechart']});
         google.charts.setOnLoadCallback(fetchData);
 
-        // ฟังก์ชันสำหรับดึงข้อมูลจาก Google Apps Script
         function fetchData() {
             google.script.run
                 .withSuccessHandler(function(data) {
@@ -147,15 +145,12 @@
                 .getDashboardData();
         }
 
-        // ฟังก์ชันสำหรับวาด Dashboard เมื่อได้ข้อมูลมาแล้ว
         function drawDashboard() {
             document.getElementById('loading-message').style.display = 'none';
             document.querySelector('.dashboard-container').style.display = 'grid';
 
-            // แสดงตัวเลขเริ่มต้น (ทั้งหมด)
             updateTimePeriod('all');
 
-            // วาดกราฟประเภทผู้ตอบ
             if (dashboardData.respondentTypeData && dashboardData.respondentTypeData.length > 1) {
                 var respondentTypeDataTable = google.visualization.arrayToDataTable(dashboardData.respondentTypeData);
                 var respondentTypeChart = new google.visualization.PieChart(document.getElementById('chart-respondent-type'));
@@ -167,27 +162,23 @@
                 });
             }
 
-            // วาดกราฟแท่งประเภทการแจ้ง
             if (dashboardData.actionTypeData && dashboardData.actionTypeData.length > 1) {
                 var actionTypeDataTable = google.visualization.arrayToDataTable(dashboardData.actionTypeData);
                 var actionTypeChart = new google.visualization.ColumnChart(document.getElementById('chart-action-type'));
                 actionTypeChart.draw(actionTypeDataTable, {
-                    title: 'ประเภทการดำเนินการ (Top 4)',
+                    title: 'สัดส่วนประเภทการดำเนินการ (Top 4)',
                     legend: { position: 'none' },
                     vAxis: { title: 'จำนวน' }
                 });
             }
 
-            // สร้าง Word Cloud
             if (dashboardData.wordCloudData && dashboardData.wordCloudData.length > 0) {
                 WordCloud(document.getElementById('word-cloud-canvas'), { list: dashboardData.wordCloudData });
             }
 
-            // ตั้งเวลาให้โหลดข้อมูลใหม่ทุก 30 วินาที
             setTimeout(fetchData, 30000);
         }
 
-        // ฟังก์ชันอัปเดตตัวเลขตามช่วงเวลา
         function updateTimePeriod(period) {
             var label = document.getElementById('voc-total-label');
             var value = document.getElementById('voc-total-value');
@@ -197,19 +188,19 @@
             document.querySelector(`button[onclick="updateTimePeriod('${period}')"]`).classList.add('active');
 
             if (period === 'all') {
-                label.innerText = 'จำนวน VOC ทั้งหมด';
+                label.innerText = 'จำนวนเสียงของลูกค้าทั้งหมด';
                 value.innerText = dashboardData.totalVOC;
             } else if (period === 'today') {
-                label.innerText = 'VOC วันนี้';
+                label.innerText = 'จำนวนเสียงของลูกค้าวันนี้';
                 value.innerText = dashboardData.newVOCToday;
             } else if (period === 'weekly') {
-                label.innerText = 'VOC รายสัปดาห์';
+                label.innerText = 'จำนวนเสียงของลูกค้ารายสัปดาห์';
                 value.innerText = dashboardData.newVOCWeekly;
             } else if (period === 'monthly') {
-                label.innerText = 'VOC รายเดือน';
+                label.innerText = 'จำนวนเสียงของลูกค้ารายเดือน';
                 value.innerText = dashboardData.newVOCMonthly;
             } else if (period === 'yearly') {
-                label.innerText = 'VOC รายปี';
+                label.innerText = 'จำนวนเสียงของลูกค้ารายปี';
                 value.innerText = dashboardData.newVOCYearly;
             }
         }
@@ -222,6 +213,3 @@
 </body>
 
 </html>
-
-
-
