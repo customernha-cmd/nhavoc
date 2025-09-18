@@ -206,16 +206,34 @@
         google.charts.setOnLoadCallback(fetchData);
 
         function fetchData() {
-            // โค้ดส่วนนี้จะทำงานได้เมื่อรันจาก Google Apps Script เท่านั้น
-            google.script.run
-                .withSuccessHandler(function(data) {
-                    dashboardData = data;
-                    document.getElementById('loading-message').style.display = 'none';
-                    document.querySelector('.dashboard-container').style.display = 'grid';
-                    updateTimePeriod('all');
-                })
-                .withFailureHandler(showError)
-                .getDashboardData();
+            var webAppUrl = 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL';
+            
+            // ตรวจสอบว่ารันบน Google Apps Script หรือ Web ภายนอก
+            if (typeof google !== 'undefined' && google.script && google.script.run) {
+                // สำหรับการรันบน Google Apps Script
+                google.script.run
+                    .withSuccessHandler(handleData)
+                    .withFailureHandler(showError)
+                    .getDashboardData();
+            } else {
+                // สำหรับการรันบน Web ภายนอก (เช่น GitHub Pages)
+                fetch(webAppUrl + '?action=getData')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(handleData)
+                    .catch(showError);
+            }
+        }
+
+        function handleData(data) {
+            dashboardData = data;
+            document.getElementById('loading-message').style.display = 'none';
+            document.querySelector('.dashboard-container').style.display = 'grid';
+            updateTimePeriod('all');
         }
 
         function filterAndDrawCharts(period) {
