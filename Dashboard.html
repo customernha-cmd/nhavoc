@@ -225,15 +225,12 @@
         function fetchData() {
             var webAppUrl = 'https://script.google.com/macros/s/AKfycbw38n_qrWF83W7QQsC0saXkmbdkuUSTi6KVESkNqTPUZPHOB2PaoL3r-rtr8CEkNmP0/exec';
             
-            // ตรวจสอบว่ารันบน Google Apps Script หรือ Web ภายนอก
             if (typeof google !== 'undefined' && google.script && google.script.run) {
-                // สำหรับการรันบน Google Apps Script
                 google.script.run
                     .withSuccessHandler(handleData)
                     .withFailureHandler(showError)
                     .getDashboardData();
             } else {
-                // สำหรับการรันบน Web ภายนอก (เช่น GitHub Pages)
                 fetch(webAppUrl + '?action=getData')
                     .then(response => {
                         if (!response.ok) {
@@ -362,27 +359,28 @@
         function drawBarChart(chartData) {
             if (chartData.length > 1) {
                 var dataTable = google.visualization.arrayToDataTable(chartData);
-                var chart = new google.visualization.ColumnChart(document.getElementById('chart-action-type'));
+                // เปลี่ยนกลับมาใช้ google.charts.Bar
+                var chart = new google.charts.Bar(document.getElementById('chart-action-type'));
                 
                 var options = {
-                    title: '',
+                    chart: { title: '' },
                     legend: { position: 'none' },
                     hAxis: { 
-                        title: '',
+                        title: '', // ลบหัวข้อแกน x ออก
                         minValue: 0, 
                         textStyle: { fontSize: 12 } 
                     },
                     vAxis: { 
                         title: '',
                         textStyle: { 
-                            fontSize: 10,
+                            fontSize: 14,
                             bold: false,
                             maxTextLines: 2,
-                            minTextSpacing: 10
+                            minTextSpacing: 20
                         } 
                     },
-                    chartArea: { left: '30%', width: '80%', height: '80%' },
-                    bar: { groupWidth: '60%' },
+                    chartArea: { left: '30%', width: '90%', height: '80%' },
+                    bar: { groupWidth: '85%' },
                     colors: [
                         '#e0669b',
                         '#fd79a8',
@@ -391,7 +389,7 @@
                         '#ffeaee'
                     ]
                 };
-                chart.draw(dataTable, options);
+                chart.draw(dataTable, google.charts.Bar.convertOptions(options));
             } else {
                 document.getElementById('chart-action-type').innerHTML = '<p style="text-align: center; color: #888;">ไม่มีข้อมูล</p>';
             }
