@@ -363,33 +363,41 @@
         function drawBarChart(chartData) {
             if (chartData.length > 1) {
                 var dataTable = google.visualization.arrayToDataTable(chartData);
-                var chart = new google.charts.Bar(document.getElementById('chart-action-type'));
-                chart.draw(dataTable, google.charts.Bar.convertOptions({
-                    chart: { title: '' },
+                // เปลี่ยนจาก google.charts.Bar เป็น google.visualization.ColumnChart
+                var chart = new google.visualization.ColumnChart(document.getElementById('chart-action-type'));
+                
+                // กำหนด options สำหรับ ColumnChart
+                var options = {
+                    title: '',
                     legend: { position: 'none' },
                     hAxis: { 
-                        // ลบ title: 'จำนวน' ออก
-                        title: '', 
+                        title: '', // ลบ title ออกเพื่อให้ไม่มีข้อความด้านล่างกราฟ
                         minValue: 0, 
                         textStyle: { fontSize: 12 } 
                     },
                     vAxis: { 
-                        title: '', 
+                        title: '', // ลบ title ออก
                         textStyle: { 
-                            fontSize: 10, // ปรับขนาดตัวอักษรให้เล็กลง
+                            fontSize: 12, // ปรับขนาดตัวอักษรให้เล็กลง
                             bold: false,
                             maxTextLines: 2, // อนุญาตให้ข้อความขึ้น 2 บรรทัด
-                            width: 150 // กำหนดความกว้างเพื่อช่วยให้ข้อความยาวขึ้นบรรทัดใหม่
+                            minTextSpacing: 0 // ลดช่องว่างระหว่างข้อความ
                         } 
                     },
                     chartArea: { left: '30%', width: '60%', height: '80%' },
+                    // กำหนดสีของแต่ละแท่งกราฟ
                     colors: [
-                        '#e84393', // สีชมพูอมม่วง
-                        '#fd79a8', // สีชมพูเชอร์รี่
-                        '#fca4c0', // สีชมพูกุหลาบ
-                        '#ffe3ee', // สีชมพูอ่อนมาก
-                    ]
-                }));
+                        '#e0669b', // Pinkish-purple
+                        '#f59cc4', // Medium pink
+                        '#ffc2e0', // Light pink
+                        '#ffd6eb', // Very light pink
+                        // เพิ่มสีได้อีกถ้ามีจำนวนแท่งกราฟมากกว่านี้
+                    ],
+                    // สำหรับ ColumnChart, การกำหนดสีแต่ละแท่งโดยตรงจะใช้ `series`
+                    // แต่ถ้ามีแค่ series เดียว (คอลัมน์ข้อมูลเดียว) เช่น "จำนวน"
+                    // Google Charts จะนำ colors array ไปใช้กับแต่ละ "จุดข้อมูล" หรือ "แท่ง" ได้
+                };
+                chart.draw(dataTable, options);
             } else {
                 document.getElementById('chart-action-type').innerHTML = '<p style="text-align: center; color: #888;">ไม่มีข้อมูล</p>';
             }
@@ -401,4 +409,3 @@
     </script>
 </body>
 </html>
-
