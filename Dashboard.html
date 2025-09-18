@@ -327,7 +327,16 @@
                     legend: { position: 'bottom', alignment: 'center' },
                     pieSliceText: 'percentage',
                     chartArea: { width: '90%', height: '80%' },
-                    colors: ['#3498db', '#e74c3c', '#f1c40f']
+                    colors: ['#3498db', '#e74c3c', '#f1c40f'],
+                    // เพิ่ม option สำหรับการขึ้นบรรทัดใหม่ใน legend ถ้าชื่อยาว
+                    legend: { 
+                        position: 'bottom', 
+                        alignment: 'center',
+                        textStyle: {
+                            fontSize: 12,
+                            maxTextLines: 2 // อนุญาตให้ข้อความขึ้น 2 บรรทัด
+                        }
+                    }
                 });
             } else {
                 document.getElementById('chart-respondent-type').innerHTML = '<p style="text-align: center; color: #888;">ไม่มีข้อมูล</p>';
@@ -341,10 +350,19 @@
                 chart.draw(dataTable, google.charts.Bar.convertOptions({
                     chart: { title: '' },
                     legend: { position: 'none' },
-                    hAxis: { title: 'จำนวน', minValue: 0, textStyle: { fontSize: 12 } },
+                    hAxis: { 
+                        // ลบ title: 'จำนวน' ออก
+                        minValue: 0, 
+                        textStyle: { fontSize: 12 } 
+                    },
                     vAxis: { 
                         title: '', 
-                        textStyle: { fontSize: 13, bold: false } 
+                        textStyle: { 
+                            fontSize: 13, 
+                            bold: false,
+                            maxTextLines: 2, // อนุญาตให้ข้อความขึ้น 2 บรรทัด
+                            width: 150 // กำหนดความกว้างเพื่อช่วยให้ข้อความยาวขึ้นบรรทัดใหม่
+                        } 
                     },
                     chartArea: { left: '30%', width: '60%', height: '80%' },
                     colors: ['#ff69b4']
@@ -360,4 +378,3 @@
     </script>
 </body>
 </html>
-
