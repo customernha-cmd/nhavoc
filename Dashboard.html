@@ -1,28 +1,344 @@
-<script>
-    var dashboardData;
-    google.charts.load('current', {'packages':['corechart', 'bar']});
-    google.charts.setOnLoadCallback(fetchData);
+<!DOCTYPE html>
+<html>
+<head>
+    <base target="_top">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <title>NHA VOC Dashboard</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #e74c3c;
+            --background-color: #ecf0f1;
+            --card-bg-color: #ffffff;
+            --text-color: #2c3e50;
+            --light-text-color: #7f8c8d;
+        }
 
-    function fetchData() {
-        // ❗ ใส่ URL ของ Web App ที่คุณ Deploy ที่นี่
-        var webAppUrl = 'https://script.google.com/macros/s/AKfycbw38n_qrWF83W7QQsC0saXkmbdkuUSTi6KVESkNqTPUZPHOB2PaoL3r-rtr8CEkNmP0/exec';
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+        }
         
-        // ใช้ Fetch API เพื่อเรียกข้อมูลจาก Web App URL
-        fetch(webAppUrl + '?action=getData')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                dashboardData = data;
-                document.getElementById('loading-message').style.display = 'none';
-                document.querySelector('.dashboard-container').style.display = 'grid';
-                updateTimePeriod('all');
-            })
-            .catch(showError);
-    }
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #1a252f);
+            color: #ffffff;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 15px;
+            display: grid;
+            gap: 25px;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        }
+
+        .dashboard-card {
+            background-color: var(--card-bg-color);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+        }
+        
+        .chart-title {
+            font-size: 22px;
+            font-weight: 500;
+            margin-bottom: 20px;
+            text-align: center;
+            color: var(--text-color);
+        }
+
+        .chart-title i {
+            color: var(--primary-color);
+            margin-right: 10px;
+        }
+        
+        .metric-card {
+            text-align: center;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .metric-icon {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .metric-value {
+            font-size: 4.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            line-height: 1.1;
+            margin-bottom: 5px;
+        }
+        
+        .metric-label {
+            font-size: 1.3rem;
+            color: var(--light-text-color);
+            margin-top: 5px;
+        }
+
+        .time-select-container {
+            text-align: center;
+            margin-top: 25px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .time-select-container button {
+            background-color: #bdc3c7;
+            color: var(--text-color);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-family: 'Kanit', sans-serif;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .time-select-container button:hover {
+            background-color: var(--primary-color);
+            color: #ffffff;
+        }
+
+        .time-select-container button.active {
+            background-color: var(--primary-color);
+            color: #ffffff;
+            box-shadow: 0 4px 10px rgba(52, 152, 219, 0.4);
+        }
+        
+        #loading-message {
+            text-align: center;
+            font-size: 1.2rem;
+            color: #888;
+            margin-top: 50px;
+        }
+
+        .chart-container {
+            height: 320px;
+            min-height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        
+        .chart-container > div {
+            width: 100%;
+            height: 100%;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-container {
+                grid-template-columns: 1fr;
+            }
+            .metric-value {
+                font-size: 3.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>Dashboard ข้อมูลเสียงของลูกค้า</h1>
+    </div>
     
-    // ... โค้ดส่วนที่เหลือยังคงเดิม ...
-</script>
+    <div id="loading-message">
+        <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #3498db;"></i> กำลังโหลดข้อมูล...
+    </div>
+    
+    <div class="dashboard-container" style="display: none;">
+        <div class="dashboard-card metric-card">
+            <div class="metric-icon">
+                <i class="fas fa-bullhorn"></i>
+            </div>
+            <div id="voc-total-label" class="metric-label">จำนวนเสียงของลูกค้าทั้งหมด</div>
+            <div class="metric-value" id="voc-total-value">0</div>
+            <div class="time-select-container">
+                <button onclick="updateTimePeriod('all')" class="active">ทั้งหมด</button>
+                <button onclick="updateTimePeriod('today')">วันนี้</button>
+                <button onclick="updateTimePeriod('weekly')">รายสัปดาห์</button>
+                <button onclick="updateTimePeriod('monthly')">รายเดือน</button>
+                <button onclick="updateTimePeriod('yearly')">รายปี</button>
+            </div>
+        </div>
+
+        <div class="dashboard-card">
+            <div class="chart-title"><i class="fas fa-users"></i> ประเภทผู้ตอบ</div>
+            <div id="chart-respondent-type" class="chart-container"></div>
+        </div>
+
+        <div class="dashboard-card">
+            <div class="chart-title"><i class="fas fa-cogs"></i> ประเภทการดำเนินงาน</div>
+            <div id="chart-action-type" class="chart-container"></div>
+        </div>
+    </div>
+    
+    <script>
+        var dashboardData;
+        google.charts.load('current', {'packages':['corechart', 'bar']});
+        google.charts.setOnLoadCallback(fetchData);
+
+        function fetchData() {
+            // โค้ดส่วนนี้จะทำงานได้เมื่อรันจาก Google Apps Script เท่านั้น
+            google.script.run
+                .withSuccessHandler(function(data) {
+                    dashboardData = data;
+                    document.getElementById('loading-message').style.display = 'none';
+                    document.querySelector('.dashboard-container').style.display = 'grid';
+                    updateTimePeriod('all');
+                })
+                .withFailureHandler(showError)
+                .getDashboardData();
+        }
+
+        function filterAndDrawCharts(period) {
+            if (!dashboardData || !dashboardData.allData) {
+                drawPieChart([['ประเภท', 'จำนวน']]);
+                drawBarChart([['ประเภท', 'จำนวน']]);
+                return;
+            }
+
+            var filteredData = dashboardData.allData;
+            var now = new Date();
+
+            if (period === 'today') {
+                filteredData = filteredData.filter(row => row[0] && new Date(row[0]).toDateString() === now.toDateString());
+            } else if (period === 'weekly') {
+                var oneWeekAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+                filteredData = filteredData.filter(row => row[0] && new Date(row[0]) >= oneWeekAgo);
+            } else if (period === 'monthly') {
+                var oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+                filteredData = filteredData.filter(row => row[0] && new Date(row[0]) >= oneMonthAgo);
+            } else if (period === 'yearly') {
+                var oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+                filteredData = filteredData.filter(row => row[0] && new Date(row[0]) >= oneYearAgo);
+            }
+
+            var respondentTypeCounts = {};
+            var actionTypeCounts = {};
+            
+            filteredData.forEach(row => {
+                var respondentType = row[1];
+                var actionType = row[2];
+                
+                if (respondentType && typeof respondentType === 'string') {
+                    respondentTypeCounts[respondentType] = (respondentTypeCounts[respondentType] || 0) + 1;
+                }
+                
+                if (actionType && typeof actionType === 'string') {
+                    actionTypeCounts[actionType] = (actionTypeCounts[actionType] || 0) + 1;
+                }
+            });
+            
+            var respondentTypeData = [['ประเภทผู้ตอบ', 'จำนวน']];
+            for (var key in respondentTypeCounts) {
+                respondentTypeData.push([key, respondentTypeCounts[key]]);
+            }
+
+            var actionTypeData = [['ประเภทการดำเนินงาน', 'จำนวน']];
+            for (var key in actionTypeCounts) {
+                actionTypeData.push([key, actionTypeCounts[key]]);
+            }
+
+            drawPieChart(respondentTypeData);
+            drawBarChart(actionTypeData);
+        }
+
+        function updateTimePeriod(period) {
+            var label = document.getElementById('voc-total-label');
+            var value = document.getElementById('voc-total-value');
+            var buttons = document.querySelectorAll('.time-select-container button');
+
+            buttons.forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`button[onclick="updateTimePeriod('${period}')"]`).classList.add('active');
+
+            if (period === 'all') {
+                label.innerText = 'จำนวนเสียงของลูกค้าทั้งหมด';
+                value.innerText = dashboardData.totalVOC;
+            } else if (period === 'today') {
+                label.innerText = 'จำนวนเสียงของลูกค้าวันนี้';
+                value.innerText = dashboardData.newVOCToday;
+            } else if (period === 'weekly') {
+                label.innerText = 'จำนวนเสียงของลูกค้ารายสัปดาห์';
+                value.innerText = dashboardData.newVOCWeekly;
+            } else if (period === 'monthly') {
+                label.innerText = 'จำนวนเสียงของลูกค้ารายเดือน';
+                value.innerText = dashboardData.newVOCMonthly;
+            } else if (period === 'yearly') {
+                label.innerText = 'จำนวนเสียงของลูกค้ารายปี';
+                value.innerText = dashboardData.newVOCYearly;
+            }
+            
+            filterAndDrawCharts(period);
+        }
+
+        function drawPieChart(chartData) {
+            if (chartData.length > 1) {
+                var dataTable = google.visualization.arrayToDataTable(chartData);
+                var chart = new google.visualization.PieChart(document.getElementById('chart-respondent-type'));
+                chart.draw(dataTable, {
+                    title: '',
+                    is3D: true,
+                    legend: { position: 'bottom', alignment: 'center' },
+                    pieSliceText: 'percentage',
+                    chartArea: { width: '90%', height: '80%' },
+                    colors: ['#3498db', '#e74c3c', '#f1c40f']
+                });
+            } else {
+                document.getElementById('chart-respondent-type').innerHTML = '<p style="text-align: center; color: #888;">ไม่มีข้อมูล</p>';
+            }
+        }
+
+        function drawBarChart(chartData) {
+            if (chartData.length > 1) {
+                var dataTable = google.visualization.arrayToDataTable(chartData);
+                var chart = new google.charts.Bar(document.getElementById('chart-action-type'));
+                chart.draw(dataTable, google.charts.Bar.convertOptions({
+                    chart: { title: '' },
+                    legend: { position: 'none' },
+                    hAxis: { title: 'จำนวน', minValue: 0, textStyle: { fontSize: 12 } },
+                    vAxis: { 
+                        title: '', 
+                        textStyle: { fontSize: 13, bold: false } 
+                    },
+                    chartArea: { left: '30%', width: '60%', height: '80%' },
+                    colors: ['#ff69b4']
+                }));
+            } else {
+                document.getElementById('chart-action-type').innerHTML = '<p style="text-align: center; color: #888;">ไม่มีข้อมูล</p>';
+            }
+        }
+
+        function showError(error) {
+            document.getElementById('loading-message').innerHTML = '<i class="fas fa-exclamation-circle" style="color: red;"></i> ไม่สามารถโหลดข้อมูลได้: ' + error.message;
+        }
+    </script>
+</body>
+</html>
