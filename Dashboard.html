@@ -321,13 +321,13 @@
                 label.innerText = 'จำนวนเสียงของลูกค้าวันนี้';
                 value.innerText = dashboardData.newVOCToday;
             } else if (period === 'weekly') {
-                label.innerText = 'จำนวนเสียงของลูกค้ารายสัปดาห์';
+                label.innerText = 'จำนวนเสียงของลูกค้าสัปดาห์นี้';
                 value.innerText = dashboardData.newVOCWeekly;
             } else if (period === 'monthly') {
-                label.innerText = 'จำนวนเสียงของลูกค้ารายเดือน';
+                label.innerText = 'จำนวนเสียงของลูกค้าเดือนนี้';
                 value.innerText = dashboardData.newVOCMonthly;
             } else if (period === 'yearly') {
-                label.innerText = 'จำนวนเสียงของลูกค้ารายปี';
+                label.innerText = 'จำนวนเสียงของลูกค้าปีนี้';
                 value.innerText = dashboardData.newVOCYearly;
             }
             
@@ -369,13 +369,14 @@
                     legend: { position: 'none' },
                     hAxis: { 
                         // ลบ title: 'จำนวน' ออก
+                        title: '', 
                         minValue: 0, 
                         textStyle: { fontSize: 12 } 
                     },
                     vAxis: { 
                         title: '', 
                         textStyle: { 
-                            fontSize: 13, 
+                            fontSize: 12, // ปรับขนาดตัวอักษรให้เล็กลง
                             bold: false,
                             maxTextLines: 2, // อนุญาตให้ข้อความขึ้น 2 บรรทัด
                             width: 150 // กำหนดความกว้างเพื่อช่วยให้ข้อความยาวขึ้นบรรทัดใหม่
@@ -383,11 +384,11 @@
                     },
                     chartArea: { left: '30%', width: '60%', height: '80%' },
                     colors: [
-                        '#ff1493', // Deep Pink
-                        '#ff47ab', // Deeper Pink
-                        '#ff75c4', // Darker Pink
-                        '#ff99cc', // Medium Pink
-                        '#ffb6c1'  // Light Pink
+                        '#e84393', // สีชมพูอมม่วง
+                        '#fd79a8', // สีชมพูเชอร์รี่
+                        '#fca4c0', // สีชมพูกุหลาบ
+                        '#ffe3ee', // สีชมพูอ่อนมาก
+                        '#ff99cc'  // สีชมพูอมม่วง
                     ]
                 }));
             } else {
