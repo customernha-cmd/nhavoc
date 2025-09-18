@@ -46,7 +46,7 @@
             display: grid;
             gap: 25px;
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            flex-grow: 1; /* ทำให้เนื้อหาหลักขยายเต็มพื้นที่ */
+            flex-grow: 1;
         }
 
         .dashboard-card {
@@ -345,13 +345,12 @@
                     pieSliceText: 'percentage',
                     chartArea: { width: '90%', height: '80%' },
                     colors: ['#3498db', '#e74c3c', '#f1c40f'],
-                    // เพิ่ม option สำหรับการขึ้นบรรทัดใหม่ใน legend ถ้าชื่อยาว
                     legend: { 
                         position: 'bottom', 
                         alignment: 'center',
                         textStyle: {
                             fontSize: 12,
-                            maxTextLines: 2 // อนุญาตให้ข้อความขึ้น 2 บรรทัด
+                            maxTextLines: 2
                         }
                     }
                 });
@@ -363,39 +362,33 @@
         function drawBarChart(chartData) {
             if (chartData.length > 1) {
                 var dataTable = google.visualization.arrayToDataTable(chartData);
-                // เปลี่ยนจาก google.charts.Bar เป็น google.visualization.ColumnChart
                 var chart = new google.visualization.ColumnChart(document.getElementById('chart-action-type'));
                 
-                // กำหนด options สำหรับ ColumnChart
                 var options = {
                     title: '',
                     legend: { position: 'none' },
                     hAxis: { 
-                        title: '', // ลบ title ออกเพื่อให้ไม่มีข้อความด้านล่างกราฟ
+                        title: '',
                         minValue: 0, 
                         textStyle: { fontSize: 12 } 
                     },
                     vAxis: { 
-                        title: '', // ลบ title ออก
+                        title: '',
                         textStyle: { 
-                            fontSize: 12, // ปรับขนาดตัวอักษรให้เล็กลง
+                            fontSize: 10,
                             bold: false,
-                            maxTextLines: 2, // อนุญาตให้ข้อความขึ้น 2 บรรทัด
-                            minTextSpacing: 0 // ลดช่องว่างระหว่างข้อความ
+                            maxTextLines: 2,
+                            minTextSpacing: 10
                         } 
                     },
-                    chartArea: { left: '30%', width: '60%', height: '80%' },
-                    // กำหนดสีของแต่ละแท่งกราฟ
+                    chartArea: { left: '30%', width: '70%', height: '80%' },
                     colors: [
-                        '#e0669b', // Pinkish-purple
-                        '#f59cc4', // Medium pink
-                        '#ffc2e0', // Light pink
-                        '#ffd6eb', // Very light pink
-                        // เพิ่มสีได้อีกถ้ามีจำนวนแท่งกราฟมากกว่านี้
-                    ],
-                    // สำหรับ ColumnChart, การกำหนดสีแต่ละแท่งโดยตรงจะใช้ `series`
-                    // แต่ถ้ามีแค่ series เดียว (คอลัมน์ข้อมูลเดียว) เช่น "จำนวน"
-                    // Google Charts จะนำ colors array ไปใช้กับแต่ละ "จุดข้อมูล" หรือ "แท่ง" ได้
+                        '#e0669b',
+                        '#fd79a8',
+                        '#fca4c0',
+                        '#ffe3ee',
+                        '#ffeaee'
+                    ]
                 };
                 chart.draw(dataTable, options);
             } else {
