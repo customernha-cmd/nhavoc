@@ -167,7 +167,6 @@
 <body>
     <div class="header">
         <h1>แดชบอร์ดข้อมูลเสียงของลูกค้า</h1>
-        <h2>Voice Of Customer Dashboard</h2>
     </div>
     
     <div id="loading-message">
@@ -305,13 +304,13 @@
                 label.innerText = 'จำนวนเสียงของลูกค้าวันนี้';
                 value.innerText = dashboardData.newVOCToday;
             } else if (period === 'weekly') {
-                label.innerText = 'จำนวนเสียงของลูกค้ารายสัปดาห์';
+                label.innerText = 'จำนวนเสียงของลูกค้าสัปดาห์นี้';
                 value.innerText = dashboardData.newVOCWeekly;
             } else if (period === 'monthly') {
-                label.innerText = 'จำนวนเสียงของลูกค้ารายเดือน';
+                label.innerText = 'จำนวนเสียงของลูกค้าเดือนนี้';
                 value.innerText = dashboardData.newVOCMonthly;
             } else if (period === 'yearly') {
-                label.innerText = 'จำนวนเสียงของลูกค้ารายปี';
+                label.innerText = 'จำนวนเสียงของลูกค้าปีนี้';
                 value.innerText = dashboardData.newVOCYearly;
             }
             
@@ -379,4 +378,5 @@
     </script>
 </body>
 </html>
+
 
