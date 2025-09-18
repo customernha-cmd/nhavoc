@@ -289,10 +289,11 @@
                 }
             });
             
+            // Re-order the data for the pie chart to match the user's request
             var respondentTypeData = [['ประเภทผู้ตอบ', 'จำนวน']];
-            for (var key in respondentTypeCounts) {
-                respondentTypeData.push([key, respondentTypeCounts[key]]);
-            }
+            respondentTypeData.push(['ลูกค้าการเคหะแห่งชาติ', respondentTypeCounts['ลูกค้าการเคหะแห่งชาติ'] || 0]);
+            respondentTypeData.push(['บุคคลทั่วไป', respondentTypeCounts['บุคคลทั่วไป'] || 0]);
+            respondentTypeData.push(['บุคลากรของการเคหะแห่งชาติ', respondentTypeCounts['บุคลากรของการเคหะแห่งชาติ'] || 0]);
 
             var actionTypeData = [['ประเภทการดำเนินงาน', 'จำนวน']];
             for (var key in actionTypeCounts) {
@@ -359,19 +360,18 @@
         function drawBarChart(chartData) {
             if (chartData.length > 1) {
                 var dataTable = google.visualization.arrayToDataTable(chartData);
-                // เปลี่ยนกลับมาใช้ google.charts.Bar
                 var chart = new google.charts.Bar(document.getElementById('chart-action-type'));
                 
                 var options = {
                     chart: { title: '' },
                     legend: { position: 'none' },
                     hAxis: { 
-                        title: '', // ลบหัวข้อแกน x ออก
+                        title: '',
                         minValue: 0, 
                         textStyle: { fontSize: 12 } 
                     },
                     vAxis: { 
-                        title: '',
+                        title: 'ประเภท',
                         textStyle: { 
                             fontSize: 14,
                             bold: false,
