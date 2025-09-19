@@ -395,51 +395,7 @@
         function showError(error) {
             document.getElementById('loading-message').innerHTML = '<i class="fas fa-exclamation-circle" style="color: red;"></i> ไม่สามารถโหลดข้อมูลได้: ' + error.message;
         }
-
-        function drawCharts(data) {
-        // ... โค้ดส่วนอื่น ๆ
-        
-        // Bar Chart for 'ประเภทการดำเนินงาน'
-        var barChartData = google.visualization.arrayToDataTable(barChartArray);
-        var barChart = new google.visualization.BarChart(document.getElementById('bar_chart_div'));
-        
-        // ✨✨ ส่วนที่ต้องแก้ไข ✨✨
-        var barOptions = {
-            title: 'ประเภทการดำเนินงาน',
-            height: 300,
-            // แก้ไขจากสีเดียวเป็นอาเรย์ของสี
-            colors: ['#FF5733', '#33FF57', '#3357FF', '#FF33E9'], // กำหนดสีสำหรับแต่ละแท่งกราฟ
-            legend: { position: 'none' },
-            chartArea: {
-                left: 140, 
-                width: '70%',
-                height: '80%'
-            },
-            hAxis: {
-                title: 'จำนวน',
-                textStyle: {
-                    fontSize: 10
-                }
-            },
-            vAxis: {
-                title: 'ประเภทการดำเนินงาน',
-                textStyle: {
-                    fontSize: 10
-                }
-            }
-        };
-
-        barChart.draw(barChartData, barOptions);
-        // ... โค้ดสำหรับกราฟอื่นๆ
-    }
         
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
