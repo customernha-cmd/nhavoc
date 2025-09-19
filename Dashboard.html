@@ -144,7 +144,7 @@
         }
 
         .chart-container {
-            height: 320px;
+            height: 450px; /* Adjust height to give more space for labels */
             min-height: 250px;
             display: flex;
             align-items: center;
@@ -252,7 +252,7 @@
 
         function filterAndDrawCharts(period) {
             if (!dashboardData || !dashboardData.allData) {
-                drawPieChart([['ประเภท', 'จำนวน']]);
+                drawPieChart([['', '']]);
                 drawBarChart([['ประเภท', 'จำนวน']]);
                 return;
             }
@@ -289,7 +289,6 @@
                 }
             });
             
-            // Re-order the data for the pie chart to match the user's request
             var respondentTypeData = [['ประเภทผู้ตอบ', 'จำนวน']];
             respondentTypeData.push(['ลูกค้าการเคหะแห่งชาติ', respondentTypeCounts['ลูกค้าการเคหะแห่งชาติ'] || 0]);
             respondentTypeData.push(['บุคคลทั่วไป', respondentTypeCounts['บุคคลทั่วไป'] || 0]);
@@ -360,36 +359,34 @@
         function drawBarChart(chartData) {
             if (chartData.length > 1) {
                 var dataTable = google.visualization.arrayToDataTable(chartData);
-                var chart = new google.charts.Bar(document.getElementById('chart-action-type'));
+                // Switch back to ColumnChart for better horizontal label display
+                var chart = new google.visualization.ColumnChart(document.getElementById('chart-action-type'));
                 
                 var options = {
-                    chart: { title: '' },
+                    title: '',
                     legend: { position: 'none' },
-                    hAxis: { 
-                        title: '',
-                        minValue: 0, 
-                        textStyle: { fontSize: 12 } 
-                    },
                     vAxis: { 
                         title: '',
                         textStyle: { 
-                            fontSize: 14,
+                            fontSize: 12,
                             bold: false,
-                            maxTextLines: 2,
-                            minTextSpacing: 20
                         } 
                     },
-                    chartArea: { left: '30%', width: '90%', height: '80%' },
-                    bar: { groupWidth: '85%' },
-                    colors: [
-                        '#e0669b',
-                        '#fd79a8',
-                        '#fca4c0',
-                        '#ffe3ee',
-                        '#ffeaee'
-                    ]
+                    hAxis: { 
+                        title: '',
+                        textStyle: { 
+                            fontSize: 10,
+                            bold: false,
+                        },
+                        slantedText: false,
+                        maxAlternation: 2,
+                        minTextSpacing: 0,
+                    },
+                    chartArea: { left: '10%', width: '90%', height: '70%' }, // Adjust chart height
+                    bar: { groupWidth: '80%' },
+                    colors: ['#ff40b9']
                 };
-                chart.draw(dataTable, google.charts.Bar.convertOptions(options));
+                chart.draw(dataTable, options);
             } else {
                 document.getElementById('chart-action-type').innerHTML = '<p style="text-align: center; color: #888;">ไม่มีข้อมูล</p>';
             }
@@ -401,4 +398,3 @@
     </script>
 </body>
 </html>
-
