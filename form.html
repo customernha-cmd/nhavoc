@@ -415,6 +415,14 @@
             fill: #dc3545;
         }
 
+        /* Error message style */
+        .error-message {
+            color: var(--error-color);
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+
         /* Media queries for responsiveness */
         @media (max-width: 600px) {
             body {
@@ -582,7 +590,10 @@
 
             <div class="form-group">
                 <label for="phone">เบอร์ติดต่อ<span class="required-mark">*</span></label>
-                <input type="tel" id="phone" name="phone" required placeholder="กรอกเฉพาะตัวเลขเท่านั้น เช่น 0812345678" maxlength="12">
+                <input type="tel" id="phone" name="phone" required
+                    placeholder="กรอกเฉพาะตัวเลขเท่านั้น เช่น 0812345678" maxlength="10"
+                    oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                <span class="error-message" id="phone-error"></span>
             </div>
 
             <div class="form-group has-voice-btn">
@@ -660,6 +671,7 @@
         const jobDetailsInput = document.getElementById('jobDetails');
         const emailInput = document.getElementById('email');
         const phoneInput = document.getElementById('phone');
+        const phoneError = document.getElementById('phone-error');
         const detailsTextarea = document.getElementById('details');
         const consentYes = document.getElementById('consent-yes');
         const consentNo = document.getElementById('consent-no');
@@ -676,7 +688,7 @@
         const voiceDisclaimer = document.getElementById('voiceDisclaimer');
         let recognition = null;
         
-        // --- Form Logic (unchanged from previous version) ---
+        // --- Form Logic ---
         function toggleFields() {
             const respondentType = respondentTypeSelect.value;
             departmentGroup.style.display = 'none';
@@ -718,19 +730,30 @@
             submitButton.disabled = !consentYes.checked;
         }
 
-        phoneInput.addEventListener('input', function (e) {
-            const input = e.target.value.replace(/\D/g, '');
-            let formattedInput = '';
-            if (input.length > 0) {
-                formattedInput += input.substring(0, 3);
+        // --- New: Phone Number Validation Functions ---
+        function isValidPhoneNumber(phone) {
+            // Regular Expression สำหรับเบอร์โทรศัพท์มือถือไทย 10 หลัก (ขึ้นต้นด้วย 06, 08, 09)
+            const phoneRegex = /^(06|08|09)\d{8}$/;
+            return phoneRegex.test(phone);
+        }
+
+        function handlePhoneValidation() {
+            const phoneValue = phoneInput.value;
+            if (phoneValue.length > 0 && !isValidPhoneNumber(phoneValue)) {
+                phoneError.textContent = 'กรุณากรอกเบอร์โทรศัพท์มือถือที่ถูกต้อง (เช่น 0812345678)';
+                phoneError.style.display = 'block';
+                return false;
+            } else {
+                phoneError.style.display = 'none';
+                return true;
             }
-            if (input.length > 3) {
-                formattedInput += '-' + input.substring(3, 6);
-            }
-            if (input.length > 6) {
-                formattedInput += '-' + input.substring(6, 10);
-            }
-            e.target.value = formattedInput;
+        }
+
+        // --- Event Listeners ---
+        phoneInput.addEventListener('blur', handlePhoneValidation);
+        phoneInput.addEventListener('input', () => {
+             // ซ่อนข้อความแจ้งเตือนเมื่อผู้ใช้เริ่มพิมพ์ใหม่
+             phoneError.style.display = 'none';
         });
 
         form.addEventListener('submit', event => {
@@ -741,10 +764,13 @@
                 return;
             }
 
+            // ตรวจสอบเบอร์โทรศัพท์อีกครั้งก่อนส่งฟอร์ม
+            if (!handlePhoneValidation()) {
+                return; // หยุดการทำงานถ้าเบอร์ไม่ถูกต้อง
+            }
+
             submitButton.disabled = true;
             submitButton.textContent = 'กำลังบันทึก...';
-
-            const phoneValueForSheet = phoneInput.value.replace(/-/g, '');
 
             const formData = {
                 respondentType: form.elements.respondentType.value,
@@ -755,7 +781,7 @@
                 firstName: form.elements.firstName.value,
                 lastName: form.elements.lastName.value,
                 email: emailInput.value,
-                phone: phoneValueForSheet,
+                phone: phoneInput.value,
                 details: form.elements.details.value
             };
 
@@ -781,9 +807,9 @@
                 });
         });
 
+        // Event Listeners (เดิม)
         respondentTypeSelect.addEventListener('change', toggleFields);
         jobSelect.addEventListener('change', toggleJobDetails);
-
         consentYes.addEventListener('change', () => {
             if (consentYes.checked) {
                 consentNo.checked = false;
@@ -791,7 +817,6 @@
             }
             toggleSubmitButton();
         });
-
         consentNo.addEventListener('change', () => {
             if (consentNo.checked) {
                 consentYes.checked = false;
@@ -799,16 +824,13 @@
             }
             toggleSubmitButton();
         });
-
         modalCloseButton.addEventListener('click', () => {
             consentModal.style.display = 'none';
         });
-
         successModalCloseButton.addEventListener('click', () => {
             successModal.style.display = 'none';
             window.location.reload();
         });
-
         window.addEventListener('click', (event) => {
             if (event.target === consentModal) {
                 consentModal.style.display = 'none';
@@ -825,7 +847,7 @@
             setupVoiceInput();
         });
 
-        // --- Voice Input Functionality (REVISED) ---
+        // --- Voice Input Functionality ---
         function setupVoiceInput() {
             if ('webkitSpeechRecognition' in window) {
                 voiceInputWrapper.style.display = 'flex';
@@ -886,16 +908,4 @@
     </script>
 </body>
 
-
 </html>
-
-
-
-
-
-
-
-
-
-
-
