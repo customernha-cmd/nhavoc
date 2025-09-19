@@ -383,7 +383,7 @@
                         minTextSpacing: 0,
                     },
                     chartArea: { left: '10%', width: '95%', height: '70%' }, // Adjust chart height
-                    bar: { groupWidth: '70%' },
+                    bar: { groupWidth: '60%' },
                     colors: ['#ff40b9']
                 };
                 chart.draw(dataTable, options);
@@ -395,9 +395,12 @@
         function showError(error) {
             document.getElementById('loading-message').innerHTML = '<i class="fas fa-exclamation-circle" style="color: red;"></i> ไม่สามารถโหลดข้อมูลได้: ' + error.message;
         }
+
+        
     </script>
 </body>
 </html>
+
 
 
 
