@@ -486,11 +486,13 @@
         </div>
 
         <form id="vocForm">
+ 
             <div class="form-group">
                 <label for="respondentType">ประเภทผู้ตอบ<span class="required-mark">*</span></label>
                 <select id="respondentType" name="respondentType" required>
                     <option value="" disabled selected>กรุณาเลือกประเภทผู้ตอบ</option>
                     <option value="ลูกค้าการเคหะแห่งชาติ">ลูกค้าการเคหะแห่งชาติ</option>
+       
                     <option value="บุคคลทั่วไป">บุคคลทั่วไป</option>
                     <option value="บุคลากรของการเคหะแห่งชาติ">บุคลากรของการเคหะแห่งชาติ</option>
                 </select>
@@ -498,56 +500,70 @@
 
             <div class="form-group" id="department-group" style="display: none;">
                 <label for="department">ฝ่าย</label>
+    
                 <select id="department" name="department">
                     <option value="" disabled selected>กรุณาเลือกฝ่าย</option>
-                    <option value="คณะกรรมการการเคหะแห่งชาติ">คณะกรรมการการเคหะแห่งชาติ</option>
-                    <option value="คณะผู้บริหารระดับสูง">คณะผู้บริหารระดับสูง</option>
                     <option value="กต.">กต.</option>
                     <option value="กบค.">กบค.</option>
                     <option value="กม.">กม.</option>
                     <option value="กย.1">กย.1</option>
                     <option value="กย.2">กย.2</option>
+                
                     <option value="กย.3">กย.3</option>
                     <option value="คตก.">คตก.</option>
                     <option value="จป.">จป.</option>
                     <option value="ชบ.">ชบ.</option>
                     <option value="ชล.">ชล.</option>
+           
                     <option value="ชน.">ชน.</option>
                     <option value="ชฉ.">ชฉ.</option>
                     <option value="ชอ.">ชอ.</option>
                     <option value="ชต.">ชต.</option>
                     <option value="ชส.">ชส.</option>
+      
                     <option value="ตภ.">ตภ.</option>
                     <option value="ทด.">ทด.</option>
                     <option value="ทบ.">ทบ.</option>
                     <option value="ทส.">ทส.</option>
                     <option value="ทอ.">ทอ.</option>
+ 
                     <option value="นผ.">นผ.</option>
                     <option value="บข.">บข.</option>
                     <option value="บช.">บช.</option>
                     <option value="บป.">บป.</option>
+                 
                     <option value="บส.">บส.</option>
                     <option value="ปบ.">ปบ.</option>
                     <option value="พก.1">พก.1</option>
                     <option value="พก.2">พก.2</option>
                     <option value="พก.3">พก.3</option>
+            
                     <option value="พค.">พค.</option>
                     <option value="ฟม.">ฟม.</option>
                     <option value="ลคช.">ลคช.</option>
                     <option value="วช.">วช.</option>
                     <option value="สก.">สก.</option>
+       
                     <option value="สน.">สน.</option>
                     <option value="สว.">สว.</option>
                     <option value="อก.">อก.</option>
+                    <option value="อื่น ๆ">อื่น ๆ</option>
                 </select>
+            </div>
+            
+            <div class="form-group" id="department-details-group" style="display: none;">
+                <label for="departmentDetails">โปรดระบุ</label>
+                <input type="text" id="departmentDetails" name="departmentDetails" placeholder="กรุณาระบุ">
             </div>
 
             <div class="form-group">
+   
                 <label for="operationType">ประเภทการดำเนินงาน<span class="required-mark">*</span></label>
                 <select id="operationType" name="operationType" required>
                     <option value="" disabled selected>กรุณาเลือกหัวข้อที่ต้องการ</option>
                     <option value="สอบถามข้อมูลทั่วไป">สอบถามข้อมูลทั่วไป</option>
                     <option value="สอบถามข้อมูลโครงการที่อยู่อาศัย">สอบถามข้อมูลโครงการที่อยู่อาศัย</option>
+ 
                     <option value="รับฟังความคิดเห็น">รับฟังความคิดเห็น</option>
                     <option value="ร้องเรียนเรื่องทั่วไป">ร้องเรียนเรื่องทั่วไป</option>
                 </select>
@@ -555,27 +571,32 @@
 
             <div class="name-group">
                 <div class="form-group">
+ 
                     <label for="firstName">ชื่อ<span class="required-mark">*</span></label>
                     <input type="text" id="firstName" name="firstName" required>
                 </div>
                 <div class="form-group">
-                    <label for="lastName">นามสกุล<span class="required-mark">*</span></label>
+                    <label for="lastName">นามสกุล<span 
+ class="required-mark">*</span></label>
                     <input type="text" id="lastName" name="lastName" required>
                 </div>
             </div>
 
             <div class="form-group" id="job-group">
                 <label for="job">อาชีพ<span class="required-mark">*</span></label>
+                
                 <select id="job" name="job" required>
                     <option value="" disabled selected>กรุณาเลือกอาชีพ</option>
                     <option value="ข้าราชการ/พนักงานของรัฐ">ข้าราชการ/พนักงานของรัฐ</option>
                     <option value="พนักงานรัฐวิสาหกิจ">พนักงานรัฐวิสาหกิจ</option>
                     <option value="พนักงานบริษัท/ธนาคาร/ห้างร้าน/โรงงาน/โรงแรม">พนักงานบริษัท/ธนาคาร/ห้างร้าน/โรงงาน/โรงแรม</option>
+           
                     <option value="ธุรกิจส่วนตัว">ธุรกิจส่วนตัว</option>
                     <option value="ค้าขาย">ค้าขาย</option>
                     <option value="ลูกจ้าง">ลูกจ้าง</option>
                     <option value="รับจ้าง">รับจ้าง</option>
                     <option value="อื่น ๆ">อื่น ๆ</option>
+    
                 </select>
             </div>
 
@@ -584,6 +605,7 @@
                 <input type="text" id="jobDetails" name="jobDetails" placeholder="กรุณาระบุรายละเอียดอาชีพ">
             </div>
 
+           
             <div class="form-group">
                 <label for="email">อีเมล (E-mail)</label>
                 <input type="email" id="email" name="email">
@@ -591,32 +613,38 @@
 
             <div class="form-group">
                 <label for="phone">เบอร์ติดต่อ<span class="required-mark">*</span></label>
-                <input type="tel" id="phone" name="phone" required
+                <input type="tel" 
+ id="phone" name="phone" required
                     placeholder="กรอกเฉพาะตัวเลขเท่านั้น เช่น 0812345678" maxlength="10"
                     oninput="this.value = this.value.replace(/[^0-9]/g, '');">
                 <span class="error-message" id="phone-error"></span>
             </div>
 
             <div class="form-group has-voice-btn">
+        
                 <label for="details">รายละเอียด<span class="required-mark">*</span></label>
                 <div class="voice-input-wrapper" id="voiceInputWrapper">
                     <span id="voiceDescription">กดที่ไมค์เพื่อพูดแทนการพิมพ์</span>
                     <button type="button" id="voiceInputBtn" title="พูดแทนการพิมพ์">
                         <span class="emoji-icon">🎤</span>
+   
                     </button>
                 </div>
                 <div id="listeningStatus">
                     <span id="listeningText"><span class="record-dot"></span> กำลังฟังอยู่ พูดได้เลย<span id="blinkingDots"><span>.</span><span>.</span><span>.</span></span></span>
                     <button type="button" id="stopVoiceBtn" title="หยุดบันทึกเสียง">
+  
                         <svg viewBox="0 0 24 24" fill="currentColor">
                            <path d="M6 6h12v12H6z"/>
                         </svg>
+                    
                     </button>
                 </div>
                 <textarea id="details" name="details" required></textarea>
                 <p id="voiceDisclaimer" class="disclaimer-text">
                     พูดแทนการพิมพ์ สามารถใช้งานได้ในเบราว์เซอร์ (Browser) Google Chrome, Microsoft Edge และ Safari
                 </p>
+   
             </div>
 
             <div class="privacy-consent">
@@ -624,14 +652,17 @@
                     ข้าพเจ้ารับทราบและยินยอมให้การเคหะแห่งชาติเก็บรวบรวม ใช้ และเปิดเผยข้อมูลส่วนบุคคลของข้าพเจ้า โดยมีวัตถุประสงค์ตาม
                     <a href="https://www.nha.co.th/privacy-policy/" target="_blank">นโยบายคุ้มครองข้อมูลส่วนบุคคลของการเคหะแห่งชาติ</a>
                 </p>
+ 
                 <div class="consent-options">
                     <div class="consent-option">
                         <input type="checkbox" id="consent-yes" name="consent-yes">
                         <label for="consent-yes">ยินยอม</label>
+           
                     </div>
                     <div class="consent-option">
                         <input type="checkbox" id="consent-no" name="consent-no">
                         <label for="consent-no">ไม่ยินยอม</label>
+                  
                     </div>
                 </div>
             </div>
@@ -644,6 +675,7 @@
     </div>
 
     <div id="consentModal" class="modal">
+      
         <div class="modal-content">
             <p>
                 ข้าพเจ้ารับทราบและยินยอมให้การเคหะแห่งชาติเก็บรวบรวม ใช้ และเปิดเผยข้อมูลส่วนบุคคลของข้าพเจ้า เพื่อนำข้อมูลไปวิเคราะห์ความต้องการที่อยู่อาศัย วิเคราะห์ด้านการตลาด เพื่อการศึกษาวิจัย เพื่อการประมวลผลข้อมูล เพื่อการพัฒนาและปรับปรุงการให้บริการและสินค้า
@@ -654,6 +686,7 @@
 
     <div id="successModal" class="modal">
         <div class="modal-content">
+          
             <p>เราได้รับข้อมูลของท่านเรียบร้อยแล้ว<br>การเคหะแห่งชาติขอขอบคุณเสียงจากทุกท่าน</p>
             <button class="modal-success-button">ตกลง</button>
         </div>
@@ -666,6 +699,8 @@
         const respondentTypeSelect = document.getElementById('respondentType');
         const departmentGroup = document.getElementById('department-group');
         const departmentSelect = document.getElementById('department');
+        const departmentDetailsGroup = document.getElementById('department-details-group');
+        const departmentDetailsInput = document.getElementById('departmentDetails');
         const jobGroup = document.getElementById('job-group');
         const jobSelect = document.getElementById('job');
         const jobDetailsGroup = document.getElementById('job-details-group');
@@ -680,7 +715,6 @@
         const successModal = document.getElementById('successModal');
         const modalCloseButton = document.querySelector('.modal-close-button');
         const successModalCloseButton = document.querySelector('.modal-success-button');
-        
         // Voice Input variables
         const voiceInputWrapper = document.getElementById('voiceInputWrapper');
         const voiceInputBtn = document.getElementById('voiceInputBtn');
@@ -688,13 +722,16 @@
         const stopVoiceBtn = document.getElementById('stopVoiceBtn');
         const voiceDisclaimer = document.getElementById('voiceDisclaimer');
         let recognition = null;
-        
         // --- Form Logic ---
         function toggleFields() {
             const respondentType = respondentTypeSelect.value;
             departmentGroup.style.display = 'none';
             departmentSelect.required = false;
             departmentSelect.value = '';
+
+            // Hide and reset the new department details field
+            departmentDetailsGroup.style.display = 'none';
+            departmentDetailsInput.value = '';
 
             jobGroup.style.display = 'none';
             jobSelect.required = false;
@@ -713,6 +750,15 @@
                 jobGroup.style.display = 'block';
                 jobSelect.required = true;
                 jobSelect.disabled = false;
+            }
+        }
+
+        function toggleDepartmentDetails() {
+            if (departmentSelect.value === 'อื่น ๆ') {
+                departmentDetailsGroup.style.display = 'block';
+            } else {
+                departmentDetailsGroup.style.display = 'none';
+                departmentDetailsInput.value = '';
             }
         }
 
@@ -756,7 +802,6 @@
              // ซ่อนข้อความแจ้งเตือนเมื่อผู้ใช้เริ่มพิมพ์ใหม่
              phoneError.style.display = 'none';
         });
-
         form.addEventListener('submit', event => {
             event.preventDefault();
 
@@ -766,7 +811,8 @@
             }
 
             // ตรวจสอบเบอร์โทรศัพท์อีกครั้งก่อนส่งฟอร์ม
-            if (!handlePhoneValidation()) {
+            if (!handlePhoneValidation()) 
+            {
                 return; // หยุดการทำงานถ้าเบอร์ไม่ถูกต้อง
             }
 
@@ -775,7 +821,8 @@
 
             const formData = {
                 respondentType: form.elements.respondentType.value,
-                department: form.elements.department.value,
+                department: departmentSelect.value,
+                departmentDetails: departmentDetailsInput.value,
                 job: jobSelect.value,
                 jobDetails: jobDetailsInput.value,
                 operationType: form.elements.operationType.value,
@@ -785,7 +832,6 @@
                 phone: phoneInput.value,
                 details: form.elements.details.value
             };
-
             fetch(WEB_APP_URL, {
                 method: 'POST',
                 mode: 'no-cors',
@@ -810,6 +856,7 @@
 
         // Event Listeners (เดิม)
         respondentTypeSelect.addEventListener('change', toggleFields);
+        departmentSelect.addEventListener('change', toggleDepartmentDetails);
         jobSelect.addEventListener('change', toggleJobDetails);
         consentYes.addEventListener('change', () => {
             if (consentYes.checked) {
@@ -839,15 +886,14 @@
             if (event.target === successModal) {
                 successModal.style.display = 'none';
                 window.location.reload();
+ 
             }
         });
-
         document.addEventListener('DOMContentLoaded', () => {
             toggleFields();
             toggleSubmitButton();
             setupVoiceInput();
         });
-
         // --- Voice Input Functionality ---
         function setupVoiceInput() {
             if ('webkitSpeechRecognition' in window) {
@@ -857,10 +903,9 @@
                 recognition = new webkitSpeechRecognition();
                 recognition.lang = 'th-TH';
                 recognition.interimResults = false;
-                recognition.continuous = false; 
-
+                recognition.continuous = false;
                 recognition.onstart = function() {
-                    voiceInputWrapper.style.display = 'none'; 
+                    voiceInputWrapper.style.display = 'none';
                     listeningStatus.style.display = 'flex'; 
                 };
 
@@ -870,7 +915,7 @@
                 };
                 
                 recognition.onend = function() {
-                    listeningStatus.style.display = 'none'; 
+                    listeningStatus.style.display = 'none';
                     voiceInputWrapper.style.display = 'flex';
                 };
 
@@ -880,25 +925,26 @@
                     listeningStatus.style.display = 'none';
                     voiceInputWrapper.style.display = 'flex';
                 };
-
                 voiceInputBtn.addEventListener('click', () => {
                     try {
                         recognition.start();
                     } catch (e) {
                         console.error('Error starting recognition:', e);
+  
                         if (e.name === 'InvalidStateError') {
                             recognition.stop();
                             setTimeout(() => { recognition.start(); }, 100);
+             
                         } else {
                             alert('ไม่สามารถเริ่มการบันทึกเสียงได้ โปรดตรวจสอบการอนุญาตใช้งานไมโครโฟน');
                         }
                     }
+              
                 });
                 
                 stopVoiceBtn.addEventListener('click', () => {
                     recognition.stop();
                 });
-
             } else {
                 voiceInputWrapper.style.display = 'none';
                 listeningStatus.style.display = 'none';
@@ -910,6 +956,3 @@
 </body>
 
 </html>
-
-
-
