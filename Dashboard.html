@@ -253,30 +253,39 @@
             updateTimePeriod('all');
         }
 
-        function filterAndDrawCharts(period) {
-            if (!dashboardData || !dashboardData.allData) {
-                drawPieChart([['ประเภท', 'จำนวน']]);
-                drawBarChart([['ประเภท', 'จำนวน']]);
-                return;
-            }
+function filterAndDrawCharts(period) {
+            if (!dashboardData || !dashboardData.allData) {
+                drawPieChart([['ประเภท', 'จำนวน']]);
+                drawBarChart([['ประเภท', 'จำนวน']]);
+                return;
+            }
 
-            var filteredData = dashboardData.allData;
-            var now = new Date();
+            var filteredData = dashboardData.allData;
+            var now = new Date();
+            now.setHours(0, 0, 0, 0); // ตั้งเวลาปัจจุบันเป็นเที่ยงคืน
 
-            if (period === 'today') {
-                filteredData = filteredData.filter(row => row[0] && new Date(row[0]).toDateString() === now.toDateString());
-            } else if (period === 'weekly') {
-                var oneWeekAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
-                filteredData = filteredData.filter(row => row[0] && new Date(row[0]) >= oneWeekAgo);
-            } else if (period === 'monthly') {
-                var oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-                filteredData = filteredData.filter(row => row[0] && new Date(row[0]) >= oneMonthAgo);
-            } else if (period === 'yearly') {
-                var oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
-                filteredData = filteredData.filter(row => row[0] && new Date(row[0]) >= oneYearAgo);
-            }
+            if (period === 'today') {
+                filteredData = filteredData.filter(row => row[0] && new Date(row[0]).toDateString() === now.toDateString());
+            } else if (period === 'weekly') {
+                // กรองข้อมูลสำหรับสัปดาห์ปัจจุบัน (จันทร์-อาทิตย์)
+                var dayOfWeek = now.getDay(); // 0 คือวันอาทิตย์
+                var diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1; 
+                var startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diff);
+                startOfWeek.setHours(0, 0, 0, 0);
+                filteredData = filteredData.filter(row => row[0] && new Date(row[0]) >= startOfWeek);
+            } else if (period === 'monthly') {
+                // กรองข้อมูลสำหรับเดือนปัจจุบัน
+                var startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                startOfMonth.setHours(0, 0, 0, 0);
+                filteredData = filteredData.filter(row => row[0] && new Date(row[0]) >= startOfMonth);
+            } else if (period === 'yearly') {
+                // กรองข้อมูลสำหรับปีปัจจุบัน
+                var startOfYear = new Date(now.getFullYear(), 0, 1);
+                startOfYear.setHours(0, 0, 0, 0);
+                filteredData = filteredData.filter(row => row[0] && new Date(row[0]) >= startOfYear);
+            }
 
-            var respondentTypeCounts = {};
+            var respondentTypeCounts = {};
             var actionTypeCounts = {};
             
             filteredData.forEach(row => {
@@ -401,3 +410,4 @@
     </script>
 </body>
 </html>
+
