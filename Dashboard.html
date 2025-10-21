@@ -262,7 +262,7 @@
         function filterAndDrawCharts(period) {
             if (!dashboardData || !dashboardData.allData || dashboardData.allData.length === 0) {
                 drawPieChart([['', '']]);
-                drawBarChart([[['ประเภท', 'จำนวน']]]);
+                drawBarChart([['ประเภท', 'จำนวน']]);
                 return;
             }
 
@@ -293,10 +293,11 @@
             var respondentTypeCounts = {};
             var actionTypeCounts = {};
             
-            // row[1] = 'ประเภทผู้ตอบ', row[2] = 'ประเภทการดำเนินงาน'
+            // row[1] = 'ประเภทผู้ตอบ' (คอลัมน์ B)
+            // row[3] = 'ประเภทการดำเนินงาน' (คอลัมน์ D) *** แก้ไขจาก Index 2 เป็น Index 3 เพื่อให้ตรงกับ Sheet ของคุณ ***
             filteredData.forEach(row => {
                 var respondentType = row[1];
-                var actionType = row[2]; 
+                var actionType = row[3]; 
                 
                 if (respondentType && typeof respondentType === 'string') {
                     respondentTypeCounts[respondentType] = (respondentTypeCounts[respondentType] || 0) + 1;
@@ -356,7 +357,7 @@
 
         function drawPieChart(chartData) {
             var container = document.getElementById('chart-respondent-type');
-            if (chartData.length > 1 && chartData.slice(1).some(row => row[1] > 0)) { // ตรวจสอบว่ามีข้อมูลสำหรับวาดหรือไม่
+            if (chartData.length > 1 && chartData.slice(1).some(row => row[1] > 0)) { 
                 var dataTable = google.visualization.arrayToDataTable(chartData);
                 var chart = new google.visualization.PieChart(container);
                 chart.draw(dataTable, {
@@ -378,7 +379,7 @@
 
         function drawBarChart(chartData) {
             var container = document.getElementById('chart-action-type');
-            if (chartData.length > 1 && chartData.slice(1).some(row => row[1] > 0)) { // ตรวจสอบว่ามีข้อมูลสำหรับวาดหรือไม่
+            if (chartData.length > 1 && chartData.slice(1).some(row => row[1] > 0)) { 
                 var dataTable = google.visualization.arrayToDataTable(chartData);
                 var chart = new google.visualization.ColumnChart(container);
                 
