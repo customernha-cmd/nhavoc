@@ -1,1 +1,398 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <base target="_top">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <title>NHA VOC Dashboard</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #e74c3c;
+            --background-color: #ecf0f1;
+            --card-bg-color: #ffffff;
+            --text-color: #2c3e50;
+            --light-text-color: #7f8c8d;
+        }
 
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #1a252f);
+            color: #ffffff;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 15px;
+            display: grid;
+            gap: 25px;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            flex-grow: 1;
+        }
+
+        .dashboard-card {
+            background-color: var(--card-bg-color);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+        }
+        
+        .chart-title {
+            font-size: 22px;
+            font-weight: 500;
+            margin-bottom: 20px;
+            text-align: center;
+            color: var(--text-color);
+        }
+
+        .chart-title i {
+            color: var(--primary-color);
+            margin-right: 10px;
+        }
+        
+        .metric-card {
+            text-align: center;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .metric-icon {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .metric-value {
+            font-size: 4.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            line-height: 1.1;
+            margin-bottom: 5px;
+        }
+        
+        .metric-label {
+            font-size: 1.3rem;
+            color: var(--light-text-color);
+            margin-top: 5px;
+        }
+
+        .time-select-container {
+            text-align: center;
+            margin-top: 25px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .time-select-container button {
+            background-color: #bdc3c7;
+            color: var(--text-color);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-family: 'Kanit', sans-serif;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .time-select-container button:hover {
+            background-color: var(--primary-color);
+            color: #ffffff;
+        }
+
+        .time-select-container button.active {
+            background-color: var(--primary-color);
+            color: #ffffff;
+            box-shadow: 0 4px 10px rgba(52, 152, 219, 0.4);
+        }
+        
+        #loading-message {
+            text-align: center;
+            font-size: 1.2rem;
+            color: #888;
+            margin-top: 50px;
+        }
+
+        .chart-container {
+            height: 450px;
+            min-height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        
+        .chart-container > div {
+            width: 100%;
+            height: 100%;
+        }
+
+        .footer {
+            background: #2c3e50;
+            color: #ffffff;
+            text-align: center;
+            padding: 20px;
+            margin-top: 50px;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-container {
+                grid-template-columns: 1fr;
+            }
+            .metric-value {
+                font-size: 3.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>แดชบอร์ดข้อมูลเสียงของลูกค้า</h1>
+    </div>
+    
+    <div id="loading-message">
+        <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #3498db;"></i> กำลังโหลดข้อมูล...
+    </div>
+    
+    <div class="dashboard-container" style="display: none;">
+        <div class="dashboard-card metric-card">
+            <div class="metric-icon">
+                <i class="fas fa-bullhorn"></i>
+            </div>
+            <div id="voc-total-label" class="metric-label">จำนวนเสียงของลูกค้าทั้งหมด</div>
+            <div class="metric-value" id="voc-total-value">0</div>
+            <div class="time-select-container">
+                <button onclick="updateTimePeriod('all')" class="active">ทั้งหมด</button>
+                <button onclick="updateTimePeriod('today')">วันนี้</button>
+                <button onclick="updateTimePeriod('weekly')">รายสัปดาห์</button>
+                <button onclick="updateTimePeriod('monthly')">รายเดือน</button>
+                <button onclick="updateTimePeriod('yearly')">รายปี</button>
+            </div>
+        </div>
+
+        <div class="dashboard-card">
+            <div class="chart-title"><i class="fas fa-users"></i> ประเภทผู้ตอบ</div>
+            <div id="chart-respondent-type" class="chart-container"></div>
+        </div>
+
+        <div class="dashboard-card">
+            <div class="chart-title"><i class="fas fa-cogs"></i> ประเภทการดำเนินงาน</div>
+            <div id="chart-action-type" class="chart-container"></div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        จัดทำโดย ฝ่ายการตลาด การเคหะแห่งชาติ
+    </div>
+
+    <script>
+        var dashboardData;
+        google.charts.load('current', {'packages':['corechart', 'bar']});
+        google.charts.setOnLoadCallback(fetchData);
+
+        function fetchData() {
+            if (typeof google !== 'undefined' && google.script && google.script.run) {
+                google.script.run
+                    .withSuccessHandler(handleData)
+                    .withFailureHandler(showError)
+                    .getDashboardData();
+            } else {
+                 showError({ message: "ไม่สามารถเรียกใช้ Google Apps Script ได้ โปรดตรวจสอบการ Deploy Web App" });
+            }
+        }
+
+        function handleData(data) {
+            // แปลง Timestamp ที่เป็น String ให้เป็น Object Date
+            data.allData = data.allData.map(row => {
+                row[0] = new Date(row[0]);
+                return row;
+            });
+            dashboardData = data;
+            
+            document.getElementById('loading-message').style.display = 'none';
+            document.querySelector('.dashboard-container').style.display = 'grid';
+            // เริ่มต้นด้วยการแสดงข้อมูล 'ทั้งหมด'
+            updateTimePeriod('all');
+        }
+
+        function filterAndDrawCharts(period) {
+            if (!dashboardData || !dashboardData.allData || dashboardData.allData.length === 0) {
+                drawPieChart([['', '']]);
+                drawBarChart([['ประเภท', 'จำนวน']]);
+                return;
+            }
+
+            var filteredData = dashboardData.allData;
+            var now = new Date();
+
+            if (period === 'today') {
+                filteredData = filteredData.filter(row => row[0] instanceof Date && row[0].toDateString() === now.toDateString());
+            } else if (period === 'weekly') {
+                var oneWeekAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+                filteredData = filteredData.filter(row => row[0] instanceof Date && row[0] >= oneWeekAgo);
+            } else if (period === 'monthly') {
+                // ส่วนที่แก้ไขเพื่อให้ข้อมูลรายเดือนถูกต้อง: เปรียบเทียบเดือนและปี
+                var currentMonth = now.getMonth();
+                var currentYear = now.getFullYear();
+                
+                filteredData = filteredData.filter(row => {
+                    if (row[0] instanceof Date && !isNaN(row[0])) {
+                        return row[0].getMonth() === currentMonth && row[0].getFullYear() === currentYear;
+                    }
+                    return false;
+                });
+            } else if (period === 'yearly') {
+                var currentYear = now.getFullYear();
+                filteredData = filteredData.filter(row => row[0] instanceof Date && row[0].getFullYear() === currentYear);
+            }
+
+            var respondentTypeCounts = {};
+            var actionTypeCounts = {};
+            
+            // row[1] = 'ประเภทผู้ตอบ', row[2] = 'ประเภทการดำเนินงาน'
+            filteredData.forEach(row => {
+                var respondentType = row[1];
+                var actionType = row[2]; 
+                
+                if (respondentType && typeof respondentType === 'string') {
+                    respondentTypeCounts[respondentType] = (respondentTypeCounts[respondentType] || 0) + 1;
+                }
+                
+                if (actionType && typeof actionType === 'string') {
+                    actionTypeCounts[actionType] = (actionTypeCounts[actionType] || 0) + 1;
+                }
+            });
+            
+            // เตรียมข้อมูล Pie Chart
+            var respondentTypeData = [['ประเภทผู้ตอบ', 'จำนวน']];
+            respondentTypeData.push(['ลูกค้าการเคหะแห่งชาติ', respondentTypeCounts['ลูกค้าการเคหะแห่งชาติ'] || 0]);
+            respondentTypeData.push(['บุคคลทั่วไป', respondentTypeCounts['บุคคลทั่วไป'] || 0]);
+            respondentTypeData.push(['บุคลากรของการเคหะแห่งชาติ', respondentTypeCounts['บุคลากรของการเคหะแห่งชาติ'] || 0]);
+
+            // เตรียมข้อมูล Bar Chart
+            var actionTypeDataArray = Object.entries(actionTypeCounts);
+            actionTypeDataArray.sort((a, b) => b[1] - a[1]);
+            
+            var actionTypeData = [['ประเภทการดำเนินงาน', 'จำนวน']];
+            actionTypeDataArray.forEach(item => actionTypeData.push(item));
+
+            drawPieChart(respondentTypeData);
+            drawBarChart(actionTypeData);
+        }
+
+        function updateTimePeriod(period) {
+            var label = document.getElementById('voc-total-label');
+            var value = document.getElementById('voc-total-value');
+            var buttons = document.querySelectorAll('.time-select-container button');
+
+            buttons.forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.time-select-container button[onclick="updateTimePeriod('${period}')"]`).classList.add('active');
+
+            // อัพเดท Metric Card ด้วยค่าที่คำนวณไว้ล่วงหน้าจาก Server
+            if (period === 'all') {
+                label.innerText = 'จำนวนเสียงของลูกค้าทั้งหมด';
+                value.innerText = dashboardData.totalVOC;
+            } else if (period === 'today') {
+                label.innerText = 'จำนวนเสียงของลูกค้าวันนี้';
+                value.innerText = dashboardData.newVOCToday;
+            } else if (period === 'weekly') {
+                label.innerText = 'จำนวนเสียงของลูกค้าสัปดาห์นี้';
+                value.innerText = dashboardData.newVOCWeekly;
+            } else if (period === 'monthly') {
+                label.innerText = 'จำนวนเสียงของลูกค้าเดือนนี้';
+                value.innerText = dashboardData.newVOCMonthly;
+            } else if (period === 'yearly') {
+                label.innerText = 'จำนวนเสียงของลูกค้าปีนี้';
+                value.innerText = dashboardData.newVOCYearly;
+            }
+            
+            // กรองข้อมูลและวาดกราฟใหม่
+            filterAndDrawCharts(period);
+        }
+
+        function drawPieChart(chartData) {
+            var container = document.getElementById('chart-respondent-type');
+            if (chartData.length > 1) {
+                var dataTable = google.visualization.arrayToDataTable(chartData);
+                var chart = new google.visualization.PieChart(container);
+                chart.draw(dataTable, {
+                    title: '',
+                    is3D: true,
+                    legend: { 
+                        position: 'right', 
+                        alignment: 'center',
+                        textStyle: { fontSize: 11, maxTextLines: 2 } 
+                    },
+                    pieSliceText: 'percentage',
+                    chartArea: { width: '90%', height: '80%' },
+                    colors: ['#3498db', '#e74c3c', '#f1c40f'],
+                });
+            } else {
+                container.innerHTML = '<p style="text-align: center; color: #888;">ไม่มีข้อมูลสำหรับช่วงเวลานี้</p>';
+            }
+        }
+
+        function drawBarChart(chartData) {
+            var container = document.getElementById('chart-action-type');
+            if (chartData.length > 1) {
+                var dataTable = google.visualization.arrayToDataTable(chartData);
+                var chart = new google.visualization.ColumnChart(container);
+                
+                var options = {
+                    title: '',
+                    legend: { position: 'none' },
+                    vAxis: { title: 'จำนวน', textStyle: { fontSize: 12 } },
+                    hAxis: { 
+                        textStyle: { fontSize: 10 },
+                        slantedText: true,
+                        slantedTextAngle: 45
+                    },
+                    chartArea: { left: '15%', width: '80%', height: '70%' },
+                    bar: { groupWidth: '75%' },
+                    colors: ['#ff40b9']
+                };
+                chart.draw(dataTable, options);
+            } else {
+                container.innerHTML = '<p style="text-align: center; color: #888;">ไม่มีข้อมูลสำหรับช่วงเวลานี้</p>';
+            }
+        }
+
+        function showError(error) {
+            document.getElementById('loading-message').innerHTML = '<i class="fas fa-exclamation-circle" style="color: red;"></i> ไม่สามารถโหลดข้อมูลได้: ' + error.message;
+            document.querySelector('.dashboard-container').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
