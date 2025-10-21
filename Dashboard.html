@@ -226,7 +226,6 @@
         google.charts.setOnLoadCallback(fetchData);
 
         function fetchData() {
-            // ใช้ Fetch API เรียก Web App URL โดยตรง พร้อม parameter ?data=true เพื่อรับ JSON
             fetch(WEB_APP_URL + '?data=true')
                 .then(response => {
                     if (!response.ok) {
@@ -235,12 +234,10 @@
                     return response.json();
                 })
                 .then(data => {
-                    // การตรวจสอบเพื่อป้องกันปัญหา "Cannot read properties of undefined"
                     if (!data || !data.allData) {
                         throw new Error("Received empty or invalid data from Apps Script API.");
                     }
 
-                    // เมื่อข้อมูลมาถึง ต้องแปลง Timestamp ที่เป็น String กลับมาเป็น Object Date
                     data.allData = data.allData.map(row => {
                         // row[0] คือ Timestamp
                         if (typeof row[0] === 'string') {
@@ -260,7 +257,6 @@
             
             document.getElementById('loading-message').style.display = 'none';
             document.querySelector('.dashboard-container').style.display = 'grid';
-            // เริ่มต้นด้วยการแสดงข้อมูล 'ทั้งหมด'
             updateTimePeriod('all');
         }
 
@@ -298,7 +294,7 @@
             var actionTypeCounts = {};
             
             // row[1] = 'ประเภทผู้ตอบ' (คอลัมน์ B)
-            // row[4] = 'ประเภทการดำเนินงาน' (คอลัมน์ E) <--- แก้ไข Index เป็น 4 แล้ว
+            // row[4] = 'ประเภทการดำเนินงาน' (คอลัมน์ E) <--- ถูกต้องแล้ว
             filteredData.forEach(row => {
                 var respondentType = row[1];
                 var actionType = row[4]; // <--- ใช้ Index 4
@@ -314,13 +310,11 @@
             
             // เตรียมข้อมูล Pie Chart
             var respondentTypeData = [['ประเภทผู้ตอบ', 'จำนวน']];
-            // ตรวจสอบข้อมูลที่มีอยู่ก่อนการ push
             if (respondentTypeCounts['ลูกค้าการเคหะแห่งชาติ'] || respondentTypeCounts['บุคคลทั่วไป'] || respondentTypeCounts['บุคลากรของการเคหะแห่งชาติ']) {
                 respondentTypeData.push(['ลูกค้าการเคหะแห่งชาติ', respondentTypeCounts['ลูกค้าการเคหะแห่งชาติ'] || 0]);
                 respondentTypeData.push(['บุคคลทั่วไป', respondentTypeCounts['บุคคลทั่วไป'] || 0]);
                 respondentTypeData.push(['บุคลากรของการเคหะแห่งชาติ', respondentTypeCounts['บุคลากรของการเคหะแห่งชาติ'] || 0]);
             } else {
-                 // หากข้อมูลว่าง ให้ push เพื่อป้องกันข้อผิดพลาด
                  respondentTypeData.push(['ไม่มีข้อมูล', 0]);
             }
             
@@ -343,7 +337,6 @@
             buttons.forEach(btn => btn.classList.remove('active'));
             document.querySelector(`.time-select-container button[onclick="updateTimePeriod('${period}')"]`).classList.add('active');
 
-            // อัพเดท Metric Card ด้วยค่าที่คำนวณไว้ล่วงหน้าจาก Server
             if (period === 'all') {
                 label.innerText = 'จำนวนเสียงของลูกค้าทั้งหมด';
                 value.innerText = dashboardData.totalVOC;
@@ -361,7 +354,6 @@
                 value.innerText = dashboardData.newVOCYearly;
             }
             
-            // กรองข้อมูลและวาดกราฟใหม่
             filterAndDrawCharts(period);
         }
 
