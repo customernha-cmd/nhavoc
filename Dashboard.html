@@ -218,7 +218,7 @@
     </div>
 
     <script>
-        // *** ⚠️ สำคัญ: Web App URL ที่คุณให้มาถูกใส่ที่นี่แล้ว ***
+        // *** ⚠️ สำคัญ: ใช้ Web App URL ที่ Deploy ล่าสุด ที่นี่ ***
         var WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw38n_qrWF83W7QQsC0saXkmbdkuUSTi6KVESkNqTPUZPHOB2PaoL3r-rtr8CEkNmP0/exec'; 
 
         var dashboardData;
@@ -235,6 +235,11 @@
                     return response.json();
                 })
                 .then(data => {
+                    // การตรวจสอบเพื่อป้องกันปัญหา "Cannot read properties of undefined"
+                    if (!data || !data.allData) {
+                        throw new Error("Received empty or invalid data from Apps Script API.");
+                    }
+
                     // เมื่อข้อมูลมาถึง ต้องแปลง Timestamp ที่เป็น String กลับมาเป็น Object Date
                     data.allData = data.allData.map(row => {
                         // row[0] คือ Timestamp
@@ -269,16 +274,16 @@
             var filteredData = dashboardData.allData;
             var now = new Date();
 
+            var oneWeekAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+            var currentMonth = now.getMonth();
+            var currentYear = now.getFullYear();
+            
             // ตรรกะการกรองข้อมูลตามช่วงเวลา
             if (period === 'today') {
                 filteredData = filteredData.filter(row => row[0] instanceof Date && row[0].toDateString() === now.toDateString());
             } else if (period === 'weekly') {
-                var oneWeekAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
                 filteredData = filteredData.filter(row => row[0] instanceof Date && row[0] >= oneWeekAgo);
             } else if (period === 'monthly') {
-                var currentMonth = now.getMonth();
-                var currentYear = now.getFullYear();
-                
                 filteredData = filteredData.filter(row => {
                     if (row[0] instanceof Date && !isNaN(row[0])) {
                         return row[0].getMonth() === currentMonth && row[0].getFullYear() === currentYear;
@@ -286,7 +291,6 @@
                     return false;
                 });
             } else if (period === 'yearly') {
-                var currentYear = now.getFullYear();
                 filteredData = filteredData.filter(row => row[0] instanceof Date && row[0].getFullYear() === currentYear);
             }
 
@@ -294,10 +298,10 @@
             var actionTypeCounts = {};
             
             // row[1] = 'ประเภทผู้ตอบ' (คอลัมน์ B)
-            // row[3] = 'ประเภทการดำเนินงาน' (คอลัมน์ D) *** Index ถูกปรับให้เข้ากับคอลัมน์ D ใน Sheet ของคุณแล้ว ***
+            // row[4] = 'ประเภทการดำเนินงาน' (คอลัมน์ E) <--- แก้ไข Index เป็น 4 แล้ว
             filteredData.forEach(row => {
                 var respondentType = row[1];
-                var actionType = row[3]; 
+                var actionType = row[4]; // <--- ใช้ Index 4
                 
                 if (respondentType && typeof respondentType === 'string') {
                     respondentTypeCounts[respondentType] = (respondentTypeCounts[respondentType] || 0) + 1;
@@ -310,10 +314,16 @@
             
             // เตรียมข้อมูล Pie Chart
             var respondentTypeData = [['ประเภทผู้ตอบ', 'จำนวน']];
-            respondentTypeData.push(['ลูกค้าการเคหะแห่งชาติ', respondentTypeCounts['ลูกค้าการเคหะแห่งชาติ'] || 0]);
-            respondentTypeData.push(['บุคคลทั่วไป', respondentTypeCounts['บุคคลทั่วไป'] || 0]);
-            respondentTypeData.push(['บุคลากรของการเคหะแห่งชาติ', respondentTypeCounts['บุคลากรของการเคหะแห่งชาติ'] || 0]);
-
+            // ตรวจสอบข้อมูลที่มีอยู่ก่อนการ push
+            if (respondentTypeCounts['ลูกค้าการเคหะแห่งชาติ'] || respondentTypeCounts['บุคคลทั่วไป'] || respondentTypeCounts['บุคลากรของการเคหะแห่งชาติ']) {
+                respondentTypeData.push(['ลูกค้าการเคหะแห่งชาติ', respondentTypeCounts['ลูกค้าการเคหะแห่งชาติ'] || 0]);
+                respondentTypeData.push(['บุคคลทั่วไป', respondentTypeCounts['บุคคลทั่วไป'] || 0]);
+                respondentTypeData.push(['บุคลากรของการเคหะแห่งชาติ', respondentTypeCounts['บุคลากรของการเคหะแห่งชาติ'] || 0]);
+            } else {
+                 // หากข้อมูลว่าง ให้ push เพื่อป้องกันข้อผิดพลาด
+                 respondentTypeData.push(['ไม่มีข้อมูล', 0]);
+            }
+            
             // เตรียมข้อมูล Bar Chart
             var actionTypeDataArray = Object.entries(actionTypeCounts);
             actionTypeDataArray.sort((a, b) => b[1] - a[1]);
