@@ -218,7 +218,7 @@
     </div>
 
     <script>
-        // *** ⚠️ สำคัญ: ต้องแทนที่ด้วย Web App URL ที่ได้จากการ Deploy Code.gs (เลือก Deploy as Anyone) ***
+        // *** ⚠️ สำคัญ: Web App URL ที่คุณให้มาถูกใส่ที่นี่แล้ว ***
         var WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw38n_qrWF83W7QQsC0saXkmbdkuUSTi6KVESkNqTPUZPHOB2PaoL3r-rtr8CEkNmP0/exec'; 
 
         var dashboardData;
@@ -294,7 +294,7 @@
             var actionTypeCounts = {};
             
             // row[1] = 'ประเภทผู้ตอบ' (คอลัมน์ B)
-            // row[3] = 'ประเภทการดำเนินงาน' (คอลัมน์ D) *** แก้ไขจาก Index 2 เป็น Index 3 เพื่อให้ตรงกับ Sheet ของคุณ ***
+            // row[3] = 'ประเภทการดำเนินงาน' (คอลัมน์ D) *** Index ถูกปรับให้เข้ากับคอลัมน์ D ใน Sheet ของคุณแล้ว ***
             filteredData.forEach(row => {
                 var respondentType = row[1];
                 var actionType = row[3]; 
