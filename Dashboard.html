@@ -219,12 +219,15 @@
 
     <script>
         // *** ⚠️ สำคัญ: ใช้ Web App URL ที่ Deploy ล่าสุด ที่นี่ ***
-        var WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw38n_qrWF83W7QQsC0saXkmbdkuUSTi6KVESkNqTPUZPHOB2PaoL3r-rtr8CEkNmP0/exec'; 
+        var WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw38n_qrWF83W7QQsC0saXkmbdkuUSTi6KVESkNqTPUZPHOB2PaoL3r-rtr8CEkNmP0/exec';
 
         var dashboardData;
         google.charts.load('current', {'packages':['corechart', 'bar']});
         google.charts.setOnLoadCallback(fetchData);
 
+        /**
+         * ดึงข้อมูลจาก Google Apps Script API
+         */
         function fetchData() {
             fetch(WEB_APP_URL + '?data=true')
                 .then(response => {
@@ -235,23 +238,36 @@
                 })
                 .then(data => {
                     if (!data || !data.allData) {
+                        // อาจเกิดจากการดึงข้อมูลได้ แต่ไม่มีข้อมูลในชีทเลย
+                        if (data && data.allData && data.allData.length === 0) {
+                            handleData(data); // จัดการเคสที่ข้อมูลว่างเปล่า
+                            return;
+                        }
                         throw new Error("Received empty or invalid data from Apps Script API.");
                     }
 
                     data.allData = data.allData.map(row => {
-                        // row[0] คือ Timestamp
+                        // แปลง ISO String กลับเป็น Date Object
                         if (typeof row[0] === 'string') {
-                            row[0] = new Date(row[0]);
+                            const date = new Date(row[0]);
+                            // ตรวจสอบความถูกต้องของวันที่
+                            row[0] = isNaN(date.getTime()) ? null : date;
+                        } else if (!(row[0] instanceof Date)) {
+                             row[0] = null;
                         }
                         return row;
-                    });
+                    }).filter(row => row[0] !== null); // กรองแถวที่ Timestamp ไม่ถูกต้อง
+                    
                     handleData(data);
                 })
                 .catch(error => {
-                    showError({ message: "ไม่สามารถเรียกข้อมูลจาก Apps Script ได้ (CORS/URL ผิด): " + error.message });
+                    showError({ message: "ไม่สามารถเรียกข้อมูลจาก Apps Script ได้ (CORS/URL ผิด/API Error): " + error.message });
                 });
         }
         
+        /**
+         * จัดการเมื่อได้รับข้อมูลเรียบร้อยแล้ว
+         */
         function handleData(data) {
             dashboardData = data;
             
@@ -260,31 +276,31 @@
             updateTimePeriod('all');
         }
 
+        /**
+         * กรองข้อมูลตามช่วงเวลาที่กำหนด และวาด Chart
+         * @param {string} period - ช่วงเวลาที่ต้องการกรอง ('all', 'today', 'weekly', 'monthly', 'yearly')
+         */
         function filterAndDrawCharts(period) {
-            if (!dashboardData || !dashboardData.allData || dashboardData.allData.length === 0) {
+            if (!dashboardData || !dashboardData.allData) {
                 drawPieChart([['', '']]);
                 drawBarChart([['ประเภท', 'จำนวน']]);
                 return;
             }
-
+            
             var filteredData = dashboardData.allData;
             var now = new Date();
-
-            var oneWeekAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
             var currentMonth = now.getMonth();
             var currentYear = now.getFullYear();
-            
+
             // ตรรกะการกรองข้อมูลตามช่วงเวลา
             if (period === 'today') {
                 filteredData = filteredData.filter(row => row[0] instanceof Date && row[0].toDateString() === now.toDateString());
             } else if (period === 'weekly') {
+                var oneWeekAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
                 filteredData = filteredData.filter(row => row[0] instanceof Date && row[0] >= oneWeekAgo);
             } else if (period === 'monthly') {
                 filteredData = filteredData.filter(row => {
-                    if (row[0] instanceof Date && !isNaN(row[0])) {
-                        return row[0].getMonth() === currentMonth && row[0].getFullYear() === currentYear;
-                    }
-                    return false;
+                    return row[0] instanceof Date && !isNaN(row[0]) && row[0].getMonth() === currentMonth && row[0].getFullYear() === currentYear;
                 });
             } else if (period === 'yearly') {
                 filteredData = filteredData.filter(row => row[0] instanceof Date && row[0].getFullYear() === currentYear);
@@ -294,28 +310,26 @@
             var actionTypeCounts = {};
             
             // row[1] = 'ประเภทผู้ตอบ' (คอลัมน์ B)
-            // row[4] = 'ประเภทการดำเนินงาน' (คอลัมน์ E) <--- ถูกต้องแล้ว
+            // row[4] = 'ประเภทการดำเนินงาน' (คอลัมน์ E)
             filteredData.forEach(row => {
                 var respondentType = row[1];
-                var actionType = row[4]; // <--- ใช้ Index 4
+                var actionType = row[4];
                 
-                if (respondentType && typeof respondentType === 'string') {
+                if (respondentType && typeof respondentType === 'string' && respondentType.trim() !== '') {
                     respondentTypeCounts[respondentType] = (respondentTypeCounts[respondentType] || 0) + 1;
                 }
                 
-                if (actionType && typeof actionType === 'string') {
+                if (actionType && typeof actionType === 'string' && actionType.trim() !== '') {
                     actionTypeCounts[actionType] = (actionTypeCounts[actionType] || 0) + 1;
                 }
             });
             
-            // เตรียมข้อมูล Pie Chart
+            // *** ปรับปรุง: เตรียมข้อมูล Pie Chart ให้รองรับทุกประเภท (Dynamic) ***
             var respondentTypeData = [['ประเภทผู้ตอบ', 'จำนวน']];
-            if (respondentTypeCounts['ลูกค้าการเคหะแห่งชาติ'] || respondentTypeCounts['บุคคลทั่วไป'] || respondentTypeCounts['บุคลากรของการเคหะแห่งชาติ']) {
-                respondentTypeData.push(['ลูกค้าการเคหะแห่งชาติ', respondentTypeCounts['ลูกค้าการเคหะแห่งชาติ'] || 0]);
-                respondentTypeData.push(['บุคคลทั่วไป', respondentTypeCounts['บุคคลทั่วไป'] || 0]);
-                respondentTypeData.push(['บุคลากรของการเคหะแห่งชาติ', respondentTypeCounts['บุคลากรของการเคหะแห่งชาติ'] || 0]);
-            } else {
-                 respondentTypeData.push(['ไม่มีข้อมูล', 0]);
+            Object.entries(respondentTypeCounts).sort((a, b) => b[1] - a[1]).forEach(item => respondentTypeData.push(item));
+            
+            if (respondentTypeData.length === 1) {
+                respondentTypeData.push(['ไม่มีข้อมูล', 0]);
             }
             
             // เตรียมข้อมูล Bar Chart
@@ -329,7 +343,13 @@
             drawBarChart(actionTypeData);
         }
 
+        /**
+         * อัปเดตตัวเลขสถิติและเรียกวาด Chart ใหม่
+         * @param {string} period - ช่วงเวลาที่ต้องการกรอง ('all', 'today', 'weekly', 'monthly', 'yearly')
+         */
         function updateTimePeriod(period) {
+            if (!dashboardData) return;
+            
             var label = document.getElementById('voc-total-label');
             var value = document.getElementById('voc-total-value');
             var buttons = document.querySelectorAll('.time-select-container button');
@@ -359,20 +379,26 @@
 
         function drawPieChart(chartData) {
             var container = document.getElementById('chart-respondent-type');
-            if (chartData.length > 1 && chartData.slice(1).some(row => row[1] > 0)) { 
+            container.innerHTML = ''; // เคลียร์เนื้อหาก่อนวาด
+            
+            // ตรวจสอบว่ามีข้อมูลสำหรับวาด Chart หรือไม่
+            var hasData = chartData.length > 1 && chartData.slice(1).some(row => row[1] > 0);
+            
+            if (hasData) {
                 var dataTable = google.visualization.arrayToDataTable(chartData);
                 var chart = new google.visualization.PieChart(container);
                 chart.draw(dataTable, {
                     title: '',
                     is3D: true,
-                    legend: { 
-                        position: 'right', 
+                    legend: {
+                        position: 'right',
                         alignment: 'center',
-                        textStyle: { fontSize: 11, maxTextLines: 2 } 
+                        textStyle: { fontSize: 11, maxTextLines: 2 }
                     },
                     pieSliceText: 'percentage',
                     chartArea: { width: '90%', height: '80%' },
-                    colors: ['#3498db', '#e74c3c', '#f1c40f'],
+                    // ให้ใช้สีตามธีมหลัก แต่ปล่อยให้ Google Charts จัดการสีเพิ่มเติมหากมีมากกว่า 3 กลุ่ม
+                    colors: ['#3498db', '#e74c3c', '#f1c40f', '#2ecc71', '#9b59b6'], 
                 });
             } else {
                 container.innerHTML = '<p style="text-align: center; color: #888; margin-top: 50px;">ไม่มีข้อมูลสำหรับช่วงเวลานี้</p>';
@@ -381,7 +407,11 @@
 
         function drawBarChart(chartData) {
             var container = document.getElementById('chart-action-type');
-            if (chartData.length > 1 && chartData.slice(1).some(row => row[1] > 0)) { 
+            container.innerHTML = ''; // เคลียร์เนื้อหาก่อนวาด
+            
+            var hasData = chartData.length > 1 && chartData.slice(1).some(row => row[1] > 0);
+            
+            if (hasData) {
                 var dataTable = google.visualization.arrayToDataTable(chartData);
                 var chart = new google.visualization.ColumnChart(container);
                 
@@ -389,7 +419,7 @@
                     title: '',
                     legend: { position: 'none' },
                     vAxis: { title: 'จำนวน', textStyle: { fontSize: 12 }, minValue: 0, format: '0' },
-                    hAxis: { 
+                    hAxis: {
                         textStyle: { fontSize: 10 },
                         slantedText: true,
                         slantedTextAngle: 45
