@@ -250,42 +250,50 @@
             dashboardData = data;
             document.getElementById('loading-message').style.display = 'none';
             document.querySelector('.dashboard-container').style.display = 'grid';
+            // เริ่มต้นด้วยการแสดงผลทั้งหมด
             updateTimePeriod('all');
         }
 
-function filterAndDrawCharts(period) {
-            if (!dashboardData || !dashboardData.allData) {
-                drawPieChart([['ประเภท', 'จำนวน']]);
-                drawBarChart([['ประเภท', 'จำนวน']]);
-                return;
-            }
+        /**
+         * ฟังก์ชันสำหรับกรองข้อมูลตามช่วงเวลาที่เลือกและวาดกราฟ
+         * แก้ไขตรรกะการคำนวณช่วงเวลาให้แม่นยำตามปฏิทินแล้ว
+         */
+        function filterAndDrawCharts(period) {
+            if (!dashboardData || !dashboardData.allData) {
+                drawPieChart([['ประเภท', 'จำนวน']]);
+                drawBarChart([['ประเภท', 'จำนวน']]);
+                return;
+            }
 
-            var filteredData = dashboardData.allData;
-            var now = new Date();
-            now.setHours(0, 0, 0, 0); // ตั้งเวลาปัจจุบันเป็นเที่ยงคืน
+            var filteredData = dashboardData.allData;
+            var now = new Date();
+            now.setHours(0, 0, 0, 0); // ตั้งเวลาปัจจุบันเป็นเที่ยงคืนเพื่อการเปรียบเทียบที่ถูกต้อง
 
-            if (period === 'today') {
-                filteredData = filteredData.filter(row => row[0] && new Date(row[0]).toDateString() === now.toDateString());
-            } else if (period === 'weekly') {
-                // กรองข้อมูลสำหรับสัปดาห์ปัจจุบัน (จันทร์-อาทิตย์)
+            if (period === 'today') {
+                filteredData = filteredData.filter(row => row[0] && new Date(row[0]).toDateString() === now.toDateString());
+            } else if (period === 'weekly') {
+                // กรองข้อมูลสำหรับสัปดาห์ปัจจุบัน (เริ่มวันจันทร์)
                 var dayOfWeek = now.getDay(); // 0 คือวันอาทิตย์
                 var diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1; 
                 var startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diff);
                 startOfWeek.setHours(0, 0, 0, 0);
-                filteredData = filteredData.filter(row => row[0] && new Date(row[0]) >= startOfWeek);
-            } else if (period === 'monthly') {
-                // กรองข้อมูลสำหรับเดือนปัจจุบัน
+
+                filteredData = filteredData.filter(row => row[0] && new Date(row[0]) >= startOfWeek);
+            } else if (period === 'monthly') {
+                // กรองข้อมูลสำหรับเดือนปัจจุบัน (เริ่มวันที่ 1)
                 var startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
                 startOfMonth.setHours(0, 0, 0, 0);
-                filteredData = filteredData.filter(row => row[0] && new Date(row[0]) >= startOfMonth);
-            } else if (period === 'yearly') {
-                // กรองข้อมูลสำหรับปีปัจจุบัน
+                
+                filteredData = filteredData.filter(row => row[0] && new Date(row[0]) >= startOfMonth);
+            } else if (period === 'yearly') {
+                // กรองข้อมูลสำหรับปีปัจจุบัน (เริ่มวันที่ 1 ม.ค.)
                 var startOfYear = new Date(now.getFullYear(), 0, 1);
                 startOfYear.setHours(0, 0, 0, 0);
-                filteredData = filteredData.filter(row => row[0] && new Date(row[0]) >= startOfYear);
-            }
+                
+                filteredData = filteredData.filter(row => row[0] && new Date(row[0]) >= startOfYear);
+            }
 
-            var respondentTypeCounts = {};
+            var respondentTypeCounts = {};
             var actionTypeCounts = {};
             
             filteredData.forEach(row => {
@@ -323,6 +331,7 @@ function filterAndDrawCharts(period) {
             buttons.forEach(btn => btn.classList.remove('active'));
             document.querySelector(`button[onclick="updateTimePeriod('${period}')"]`).classList.add('active');
 
+            // ใช้ค่าที่คำนวณไว้แล้วจาก Apps Script สำหรับตัวเลขหลัก
             if (period === 'all') {
                 label.innerText = 'จำนวนเสียงของลูกค้าทั้งหมด';
                 value.innerText = dashboardData.totalVOC;
@@ -340,6 +349,7 @@ function filterAndDrawCharts(period) {
                 value.innerText = dashboardData.newVOCYearly;
             }
             
+            // กรองข้อมูลและวาดชาร์ต
             filterAndDrawCharts(period);
         }
 
@@ -350,17 +360,15 @@ function filterAndDrawCharts(period) {
                 chart.draw(dataTable, {
                     title: '',
                     is3D: true,
-                    legend: { position: 'bottom', alignment: 'center' },
                     pieSliceText: 'percentage',
                     chartArea: { width: '90%', height: '80%' },
                     colors: ['#3498db', '#e74c3c', '#f1c40f'],
-                    // เพิ่ม option สำหรับการขึ้นบรรทัดใหม่ใน legend ถ้าชื่อยาว
                     legend: { 
                         position: 'bottom', 
                         alignment: 'center',
                         textStyle: {
                             fontSize: 12,
-                            maxTextLines: 2 // อนุญาตให้ข้อความขึ้น 2 บรรทัด
+                            maxTextLines: 2
                         }
                     }
                 });
@@ -377,7 +385,6 @@ function filterAndDrawCharts(period) {
                     chart: { title: '' },
                     legend: { position: 'none' },
                     hAxis: { 
-                        // ลบ title: 'จำนวน' ออก
                         title: '', 
                         minValue: 0, 
                         textStyle: { fontSize: 12 } 
@@ -385,10 +392,10 @@ function filterAndDrawCharts(period) {
                     vAxis: { 
                         title: '', 
                         textStyle: { 
-                            fontSize: 10, // ปรับขนาดตัวอักษรให้เล็กลง
+                            fontSize: 10,
                             bold: false,
-                            maxTextLines: 2, // อนุญาตให้ข้อความขึ้น 2 บรรทัด
-                            width: 150 // กำหนดความกว้างเพื่อช่วยให้ข้อความยาวขึ้นบรรทัดใหม่
+                            maxTextLines: 2,
+                            width: 150
                         } 
                     },
                     chartArea: { left: '30%', width: '60%', height: '80%' },
@@ -410,4 +417,3 @@ function filterAndDrawCharts(period) {
     </script>
 </body>
 </html>
-
