@@ -144,7 +144,7 @@
         }
 
         .chart-container {
-            height: 450px; /* Adjust height to give more space for labels */
+            height: 450px;
             min-height: 250px;
             display: flex;
             align-items: center;
@@ -223,35 +223,33 @@
         google.charts.setOnLoadCallback(fetchData);
 
         function fetchData() {
-            var webAppUrl = 'https://script.google.com/macros/s/AKfycbw38n_qrWF83W7QQsC0saXkmbdkuUSTi6KVESkNqTPUZPHOB2PaoL3r-rtr8CEkNmP0/exec';
-            
+            // เรียกใช้ฟังก์ชัน getDashboardData() จาก Code.gs
             if (typeof google !== 'undefined' && google.script && google.script.run) {
                 google.script.run
                     .withSuccessHandler(handleData)
                     .withFailureHandler(showError)
                     .getDashboardData();
             } else {
-                fetch(webAppUrl + '?action=getData')
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
-                        }
-                        return response.json();
-                    })
-                    .then(handleData)
-                    .catch(showError);
+                 showError({ message: "ไม่สามารถเรียกใช้ Google Apps Script ได้ โปรดตรวจสอบการ Deploy Web App" });
             }
         }
 
         function handleData(data) {
+            // แปลง Timestamp ที่เป็น String ให้เป็น Object Date
+            data.allData = data.allData.map(row => {
+                row[0] = new Date(row[0]);
+                return row;
+            });
             dashboardData = data;
+            
             document.getElementById('loading-message').style.display = 'none';
             document.querySelector('.dashboard-container').style.display = 'grid';
+            // เริ่มต้นด้วยการแสดงข้อมูล 'ทั้งหมด'
             updateTimePeriod('all');
         }
 
         function filterAndDrawCharts(period) {
-            if (!dashboardData || !dashboardData.allData) {
+            if (!dashboardData || !dashboardData.allData || dashboardData.allData.length === 0) {
                 drawPieChart([['', '']]);
                 drawBarChart([['ประเภท', 'จำนวน']]);
                 return;
@@ -261,24 +259,33 @@
             var now = new Date();
 
             if (period === 'today') {
-                filteredData = filteredData.filter(row => row[0] && new Date(row[0]).toDateString() === now.toDateString());
+                filteredData = filteredData.filter(row => row[0] instanceof Date && row[0].toDateString() === now.toDateString());
             } else if (period === 'weekly') {
                 var oneWeekAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
-                filteredData = filteredData.filter(row => row[0] && new Date(row[0]) >= oneWeekAgo);
+                filteredData = filteredData.filter(row => row[0] instanceof Date && row[0] >= oneWeekAgo);
             } else if (period === 'monthly') {
-                var oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-                filteredData = filteredData.filter(row => row[0] && new Date(row[0]) >= oneMonthAgo);
+                // *** ส่วนที่แก้ไขเพื่อให้ข้อมูลรายเดือนถูกต้อง ***
+                var currentMonth = now.getMonth();
+                var currentYear = now.getFullYear();
+                
+                filteredData = filteredData.filter(row => {
+                    if (row[0] instanceof Date && !isNaN(row[0])) {
+                        return row[0].getMonth() === currentMonth && row[0].getFullYear() === currentYear;
+                    }
+                    return false;
+                });
             } else if (period === 'yearly') {
-                var oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
-                filteredData = filteredData.filter(row => row[0] && new Date(row[0]) >= oneYearAgo);
+                var currentYear = now.getFullYear();
+                filteredData = filteredData.filter(row => row[0] instanceof Date && row[0].getFullYear() === currentYear);
             }
 
             var respondentTypeCounts = {};
             var actionTypeCounts = {};
             
+            // row[1] = 'ประเภทผู้ตอบ', row[2] = 'ประเด็นการดำเนินงาน'
             filteredData.forEach(row => {
                 var respondentType = row[1];
-                var actionType = row[2];
+                var actionType = row[2]; 
                 
                 if (respondentType && typeof respondentType === 'string') {
                     respondentTypeCounts[respondentType] = (respondentTypeCounts[respondentType] || 0) + 1;
@@ -289,15 +296,18 @@
                 }
             });
             
+            // เตรียมข้อมูล Pie Chart
             var respondentTypeData = [['ประเภทผู้ตอบ', 'จำนวน']];
             respondentTypeData.push(['ลูกค้าการเคหะแห่งชาติ', respondentTypeCounts['ลูกค้าการเคหะแห่งชาติ'] || 0]);
             respondentTypeData.push(['บุคคลทั่วไป', respondentTypeCounts['บุคคลทั่วไป'] || 0]);
             respondentTypeData.push(['บุคลากรของการเคหะแห่งชาติ', respondentTypeCounts['บุคลากรของการเคหะแห่งชาติ'] || 0]);
 
+            // เตรียมข้อมูล Bar Chart (Top Action Types)
+            var actionTypeDataArray = Object.entries(actionTypeCounts);
+            actionTypeDataArray.sort((a, b) => b[1] - a[1]); // เรียงจากมากไปน้อย
+            
             var actionTypeData = [['ประเภทการดำเนินงาน', 'จำนวน']];
-            for (var key in actionTypeCounts) {
-                actionTypeData.push([key, actionTypeCounts[key]]);
-            }
+            actionTypeDataArray.forEach(item => actionTypeData.push(item)); // แสดงทั้งหมด ไม่จำกัดที่ 4
 
             drawPieChart(respondentTypeData);
             drawBarChart(actionTypeData);
@@ -309,8 +319,10 @@
             var buttons = document.querySelectorAll('.time-select-container button');
 
             buttons.forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`button[onclick="updateTimePeriod('${period}')"]`).classList.add('active');
+            // ต้องหาปุ่มที่ถูกคลิกโดยใช้ attribute onclick
+            document.querySelector(`.time-select-container button[onclick="updateTimePeriod('${period}')"]`).classList.add('active');
 
+            // อัพเดท Metric Card ด้วยค่าที่คำนวณไว้ล่วงหน้าจาก Server
             if (period === 'all') {
                 label.innerText = 'จำนวนเสียงของลูกค้าทั้งหมด';
                 value.innerText = dashboardData.totalVOC;
@@ -328,74 +340,63 @@
                 value.innerText = dashboardData.newVOCYearly;
             }
             
+            // กรองข้อมูลและวาดกราฟใหม่
             filterAndDrawCharts(period);
         }
 
         function drawPieChart(chartData) {
+            var container = document.getElementById('chart-respondent-type');
             if (chartData.length > 1) {
                 var dataTable = google.visualization.arrayToDataTable(chartData);
-                var chart = new google.visualization.PieChart(document.getElementById('chart-respondent-type'));
+                var chart = new google.visualization.PieChart(container);
                 chart.draw(dataTable, {
                     title: '',
                     is3D: true,
-                    legend: { position: 'bottom', alignment: 'center' },
+                    // แก้ไขการจัดวาง Legend ให้ดูดีขึ้น
+                    legend: { 
+                        position: 'right', 
+                        alignment: 'center',
+                        textStyle: { fontSize: 11, maxTextLines: 2 } 
+                    },
                     pieSliceText: 'percentage',
                     chartArea: { width: '90%', height: '80%' },
                     colors: ['#3498db', '#e74c3c', '#f1c40f'],
-                    legend: { 
-                        position: 'bottom', 
-                        alignment: 'center',
-                        textStyle: {
-                            fontSize: 10,
-                            maxTextLines: 2
-                        }
-                    }
                 });
             } else {
-                document.getElementById('chart-respondent-type').innerHTML = '<p style="text-align: center; color: #888;">ไม่มีข้อมูล</p>';
+                container.innerHTML = '<p style="text-align: center; color: #888;">ไม่มีข้อมูลสำหรับช่วงเวลานี้</p>';
             }
         }
 
         function drawBarChart(chartData) {
+            var container = document.getElementById('chart-action-type');
             if (chartData.length > 1) {
                 var dataTable = google.visualization.arrayToDataTable(chartData);
-                // Switch back to ColumnChart for better horizontal label display
-                var chart = new google.visualization.ColumnChart(document.getElementById('chart-action-type'));
+                var chart = new google.visualization.ColumnChart(container);
                 
                 var options = {
                     title: '',
                     legend: { position: 'none' },
-                    vAxis: { 
-                        title: '',
-                        textStyle: { 
-                            fontSize: 12,
-                            bold: false,
-                        } 
-                    },
+                    vAxis: { title: 'จำนวน', textStyle: { fontSize: 12 } },
                     hAxis: { 
-                        title: '',
-                        textStyle: { 
-                            fontSize: 10,
-                            bold: false,
-                        },
-                        slantedText: false,
-                        maxAlternation: 2,
-                        minTextSpacing: 0,
+                        // แก้ไขการแสดงผลแกนนอนให้รองรับข้อความยาว
+                        textStyle: { fontSize: 10 },
+                        slantedText: true,
+                        slantedTextAngle: 45
                     },
-                    chartArea: { left: '8%', width: '95%', height: '70%' }, // Adjust chart height
+                    chartArea: { left: '15%', width: '80%', height: '70%' },
                     bar: { groupWidth: '75%' },
-                    colors: ['#ff40b9']
+                    colors: ['#ff40b9'] // สีชมพู
                 };
                 chart.draw(dataTable, options);
             } else {
-                document.getElementById('chart-action-type').innerHTML = '<p style="text-align: center; color: #888;">ไม่มีข้อมูล</p>';
+                container.innerHTML = '<p style="text-align: center; color: #888;">ไม่มีข้อมูลสำหรับช่วงเวลานี้</p>';
             }
         }
 
         function showError(error) {
             document.getElementById('loading-message').innerHTML = '<i class="fas fa-exclamation-circle" style="color: red;"></i> ไม่สามารถโหลดข้อมูลได้: ' + error.message;
+            document.querySelector('.dashboard-container').style.display = 'none';
         }
-        
     </script>
 </body>
 </html>
