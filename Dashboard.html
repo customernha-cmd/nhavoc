@@ -223,7 +223,6 @@
         google.charts.setOnLoadCallback(fetchData);
 
         function fetchData() {
-            // เรียกใช้ฟังก์ชัน getDashboardData() จาก Code.gs
             if (typeof google !== 'undefined' && google.script && google.script.run) {
                 google.script.run
                     .withSuccessHandler(handleData)
@@ -235,7 +234,6 @@
         }
 
         function handleData(data) {
-            // แปลง Timestamp ที่เป็น String ให้เป็น Object Date
             data.allData = data.allData.map(row => {
                 row[0] = new Date(row[0]);
                 return row;
@@ -244,7 +242,6 @@
             
             document.getElementById('loading-message').style.display = 'none';
             document.querySelector('.dashboard-container').style.display = 'grid';
-            // เริ่มต้นด้วยการแสดงข้อมูล 'ทั้งหมด'
             updateTimePeriod('all');
         }
 
@@ -264,7 +261,6 @@
                 var oneWeekAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
                 filteredData = filteredData.filter(row => row[0] instanceof Date && row[0] >= oneWeekAgo);
             } else if (period === 'monthly') {
-                // *** ส่วนที่แก้ไขเพื่อให้ข้อมูลรายเดือนถูกต้อง ***
                 var currentMonth = now.getMonth();
                 var currentYear = now.getFullYear();
                 
@@ -282,7 +278,7 @@
             var respondentTypeCounts = {};
             var actionTypeCounts = {};
             
-            // row[1] = 'ประเภทผู้ตอบ', row[2] = 'ประเภทการดำเนินงาน'
+            // row[1] = 'ประเภทผู้ตอบ', row[2] = 'ประเด็นการดำเนินงาน'
             filteredData.forEach(row => {
                 var respondentType = row[1];
                 var actionType = row[2]; 
@@ -296,18 +292,16 @@
                 }
             });
             
-            // เตรียมข้อมูล Pie Chart
             var respondentTypeData = [['ประเภทผู้ตอบ', 'จำนวน']];
             respondentTypeData.push(['ลูกค้าการเคหะแห่งชาติ', respondentTypeCounts['ลูกค้าการเคหะแห่งชาติ'] || 0]);
             respondentTypeData.push(['บุคคลทั่วไป', respondentTypeCounts['บุคคลทั่วไป'] || 0]);
             respondentTypeData.push(['บุคลากรของการเคหะแห่งชาติ', respondentTypeCounts['บุคลากรของการเคหะแห่งชาติ'] || 0]);
 
-            // เตรียมข้อมูล Bar Chart (Top Action Types)
             var actionTypeDataArray = Object.entries(actionTypeCounts);
-            actionTypeDataArray.sort((a, b) => b[1] - a[1]); // เรียงจากมากไปน้อย
+            actionTypeDataArray.sort((a, b) => b[1] - a[1]);
             
             var actionTypeData = [['ประเภทการดำเนินงาน', 'จำนวน']];
-            actionTypeDataArray.forEach(item => actionTypeData.push(item)); // แสดงทั้งหมด ไม่จำกัดที่ 4
+            actionTypeDataArray.forEach(item => actionTypeData.push(item));
 
             drawPieChart(respondentTypeData);
             drawBarChart(actionTypeData);
@@ -319,10 +313,8 @@
             var buttons = document.querySelectorAll('.time-select-container button');
 
             buttons.forEach(btn => btn.classList.remove('active'));
-            // ต้องหาปุ่มที่ถูกคลิกโดยใช้ attribute onclick
             document.querySelector(`.time-select-container button[onclick="updateTimePeriod('${period}')"]`).classList.add('active');
 
-            // อัพเดท Metric Card ด้วยค่าที่คำนวณไว้ล่วงหน้าจาก Server
             if (period === 'all') {
                 label.innerText = 'จำนวนเสียงของลูกค้าทั้งหมด';
                 value.innerText = dashboardData.totalVOC;
@@ -340,7 +332,6 @@
                 value.innerText = dashboardData.newVOCYearly;
             }
             
-            // กรองข้อมูลและวาดกราฟใหม่
             filterAndDrawCharts(period);
         }
 
@@ -352,7 +343,6 @@
                 chart.draw(dataTable, {
                     title: '',
                     is3D: true,
-                    // แก้ไขการจัดวาง Legend ให้ดูดีขึ้น
                     legend: { 
                         position: 'right', 
                         alignment: 'center',
@@ -378,14 +368,13 @@
                     legend: { position: 'none' },
                     vAxis: { title: 'จำนวน', textStyle: { fontSize: 12 } },
                     hAxis: { 
-                        // แก้ไขการแสดงผลแกนนอนให้รองรับข้อความยาว
                         textStyle: { fontSize: 10 },
                         slantedText: true,
                         slantedTextAngle: 45
                     },
                     chartArea: { left: '15%', width: '80%', height: '70%' },
                     bar: { groupWidth: '75%' },
-                    colors: ['#ff40b9'] // สีชมพู
+                    colors: ['#ff40b9']
                 };
                 chart.draw(dataTable, options);
             } else {
@@ -400,4 +389,3 @@
     </script>
 </body>
 </html>
-
