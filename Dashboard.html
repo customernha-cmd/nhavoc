@@ -234,6 +234,7 @@
         }
 
         function handleData(data) {
+            // แปลง Timestamp ที่เป็น String ให้เป็น Object Date
             data.allData = data.allData.map(row => {
                 row[0] = new Date(row[0]);
                 return row;
@@ -242,6 +243,7 @@
             
             document.getElementById('loading-message').style.display = 'none';
             document.querySelector('.dashboard-container').style.display = 'grid';
+            // เริ่มต้นด้วยการแสดงข้อมูล 'ทั้งหมด'
             updateTimePeriod('all');
         }
 
@@ -261,6 +263,7 @@
                 var oneWeekAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
                 filteredData = filteredData.filter(row => row[0] instanceof Date && row[0] >= oneWeekAgo);
             } else if (period === 'monthly') {
+                // ส่วนที่แก้ไขเพื่อให้ข้อมูลรายเดือนถูกต้อง: เปรียบเทียบเดือนและปี
                 var currentMonth = now.getMonth();
                 var currentYear = now.getFullYear();
                 
@@ -278,7 +281,7 @@
             var respondentTypeCounts = {};
             var actionTypeCounts = {};
             
-            // row[1] = 'ประเภทผู้ตอบ', row[2] = 'ประเด็นการดำเนินงาน'
+            // row[1] = 'ประเภทผู้ตอบ', row[2] = 'ประเภทการดำเนินงาน'
             filteredData.forEach(row => {
                 var respondentType = row[1];
                 var actionType = row[2]; 
@@ -292,11 +295,13 @@
                 }
             });
             
+            // เตรียมข้อมูล Pie Chart
             var respondentTypeData = [['ประเภทผู้ตอบ', 'จำนวน']];
             respondentTypeData.push(['ลูกค้าการเคหะแห่งชาติ', respondentTypeCounts['ลูกค้าการเคหะแห่งชาติ'] || 0]);
             respondentTypeData.push(['บุคคลทั่วไป', respondentTypeCounts['บุคคลทั่วไป'] || 0]);
             respondentTypeData.push(['บุคลากรของการเคหะแห่งชาติ', respondentTypeCounts['บุคลากรของการเคหะแห่งชาติ'] || 0]);
 
+            // เตรียมข้อมูล Bar Chart
             var actionTypeDataArray = Object.entries(actionTypeCounts);
             actionTypeDataArray.sort((a, b) => b[1] - a[1]);
             
@@ -315,6 +320,7 @@
             buttons.forEach(btn => btn.classList.remove('active'));
             document.querySelector(`.time-select-container button[onclick="updateTimePeriod('${period}')"]`).classList.add('active');
 
+            // อัพเดท Metric Card ด้วยค่าที่คำนวณไว้ล่วงหน้าจาก Server
             if (period === 'all') {
                 label.innerText = 'จำนวนเสียงของลูกค้าทั้งหมด';
                 value.innerText = dashboardData.totalVOC;
@@ -332,6 +338,7 @@
                 value.innerText = dashboardData.newVOCYearly;
             }
             
+            // กรองข้อมูลและวาดกราฟใหม่
             filterAndDrawCharts(period);
         }
 
