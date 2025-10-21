@@ -218,27 +218,39 @@
     </div>
 
     <script>
+        // *** ⚠️ สำคัญ: ต้องแทนที่ด้วย Web App URL ที่ได้จากการ Deploy Code.gs (เลือก Deploy as Anyone) ***
+        var WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbw38n_qrWF83W7QQsC0saXkmbdkuUSTi6KVESkNqTPUZPHOB2PaoL3r-rtr8CEkNmP0/exec'; 
+
         var dashboardData;
         google.charts.load('current', {'packages':['corechart', 'bar']});
         google.charts.setOnLoadCallback(fetchData);
 
         function fetchData() {
-            if (typeof google !== 'undefined' && google.script && google.script.run) {
-                google.script.run
-                    .withSuccessHandler(handleData)
-                    .withFailureHandler(showError)
-                    .getDashboardData();
-            } else {
-                 showError({ message: "ไม่สามารถเรียกใช้ Google Apps Script ได้ โปรดตรวจสอบการ Deploy Web App" });
-            }
+            // ใช้ Fetch API เรียก Web App URL โดยตรง พร้อม parameter ?data=true เพื่อรับ JSON
+            fetch(WEB_APP_URL + '?data=true')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('HTTP status ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // เมื่อข้อมูลมาถึง ต้องแปลง Timestamp ที่เป็น String กลับมาเป็น Object Date
+                    data.allData = data.allData.map(row => {
+                        // row[0] คือ Timestamp
+                        if (typeof row[0] === 'string') {
+                            row[0] = new Date(row[0]);
+                        }
+                        return row;
+                    });
+                    handleData(data);
+                })
+                .catch(error => {
+                    showError({ message: "ไม่สามารถเรียกข้อมูลจาก Apps Script ได้ (CORS/URL ผิด): " + error.message });
+                });
         }
-
+        
         function handleData(data) {
-            // แปลง Timestamp ที่เป็น String ให้เป็น Object Date
-            data.allData = data.allData.map(row => {
-                row[0] = new Date(row[0]);
-                return row;
-            });
             dashboardData = data;
             
             document.getElementById('loading-message').style.display = 'none';
@@ -250,20 +262,20 @@
         function filterAndDrawCharts(period) {
             if (!dashboardData || !dashboardData.allData || dashboardData.allData.length === 0) {
                 drawPieChart([['', '']]);
-                drawBarChart([['ประเภท', 'จำนวน']]);
+                drawBarChart([[['ประเภท', 'จำนวน']]]);
                 return;
             }
 
             var filteredData = dashboardData.allData;
             var now = new Date();
 
+            // ตรรกะการกรองข้อมูลตามช่วงเวลา
             if (period === 'today') {
                 filteredData = filteredData.filter(row => row[0] instanceof Date && row[0].toDateString() === now.toDateString());
             } else if (period === 'weekly') {
                 var oneWeekAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
                 filteredData = filteredData.filter(row => row[0] instanceof Date && row[0] >= oneWeekAgo);
             } else if (period === 'monthly') {
-                // ส่วนที่แก้ไขเพื่อให้ข้อมูลรายเดือนถูกต้อง: เปรียบเทียบเดือนและปี
                 var currentMonth = now.getMonth();
                 var currentYear = now.getFullYear();
                 
@@ -344,7 +356,7 @@
 
         function drawPieChart(chartData) {
             var container = document.getElementById('chart-respondent-type');
-            if (chartData.length > 1) {
+            if (chartData.length > 1 && chartData.slice(1).some(row => row[1] > 0)) { // ตรวจสอบว่ามีข้อมูลสำหรับวาดหรือไม่
                 var dataTable = google.visualization.arrayToDataTable(chartData);
                 var chart = new google.visualization.PieChart(container);
                 chart.draw(dataTable, {
@@ -360,20 +372,20 @@
                     colors: ['#3498db', '#e74c3c', '#f1c40f'],
                 });
             } else {
-                container.innerHTML = '<p style="text-align: center; color: #888;">ไม่มีข้อมูลสำหรับช่วงเวลานี้</p>';
+                container.innerHTML = '<p style="text-align: center; color: #888; margin-top: 50px;">ไม่มีข้อมูลสำหรับช่วงเวลานี้</p>';
             }
         }
 
         function drawBarChart(chartData) {
             var container = document.getElementById('chart-action-type');
-            if (chartData.length > 1) {
+            if (chartData.length > 1 && chartData.slice(1).some(row => row[1] > 0)) { // ตรวจสอบว่ามีข้อมูลสำหรับวาดหรือไม่
                 var dataTable = google.visualization.arrayToDataTable(chartData);
                 var chart = new google.visualization.ColumnChart(container);
                 
                 var options = {
                     title: '',
                     legend: { position: 'none' },
-                    vAxis: { title: 'จำนวน', textStyle: { fontSize: 12 } },
+                    vAxis: { title: 'จำนวน', textStyle: { fontSize: 12 }, minValue: 0, format: '0' },
                     hAxis: { 
                         textStyle: { fontSize: 10 },
                         slantedText: true,
@@ -385,7 +397,7 @@
                 };
                 chart.draw(dataTable, options);
             } else {
-                container.innerHTML = '<p style="text-align: center; color: #888;">ไม่มีข้อมูลสำหรับช่วงเวลานี้</p>';
+                container.innerHTML = '<p style="text-align: center; color: #888; margin-top: 50px;">ไม่มีข้อมูลสำหรับช่วงเวลานี้</p>';
             }
         }
 
